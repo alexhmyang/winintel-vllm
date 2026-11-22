@@ -1,0 +1,52 @@
+{
+  "runtime": {
+    "pid": 269093,
+    "started": 1795265023.6946251,
+    "command": [
+      "bash",
+      "/home/z/winintel-vllm-functional/qwen38-best-code/serve_sm70_qwen_tp8.sh",
+      "/home/z/models/Qwen3.8-27B-NVFP4"
+    ],
+    "settings": {
+      "ENGINE_ROOT": "/home/z/winintel-vllm-qwen38-bench",
+      "CUDA_HOME": "/usr/local/cuda-12.8",
+      "SM70_SPECULATIVE_TOKENS": "7",
+      "SM70_KV_CACHE_DTYPE": "auto",
+      "SM70_MAX_NUM_SEQS": "16",
+      "SM70_MAX_MODEL_LEN": "16384",
+      "SM70_MEMORY_UTILIZATION": "0.80",
+      "SM70_PORT": "8041"
+    }
+  },
+  "model_id": "nvidia/Qwen3.8-27B-NVFP4",
+  "revision": "482ca0f3832238542f8f5295dde86b5f22711d80",
+  "command": [
+    "/home/z/winintel-vllm-qwen38-bench/.venv/bin/python",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/run_sm70_guarded.py",
+    "--gpus",
+    "0,1,2,3,4,5,6,7",
+    "--report",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/official-code-mtp7-gpu.json",
+    "--",
+    "/home/z/winintel-vllm-qwen38-bench/.venv/bin/python",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/benchmark_sm70_http.py",
+    "--base-url",
+    "http://127.0.0.1:8041/v1",
+    "--model",
+    "winintel-qwen27-nvfp4-tp8",
+    "--tokenizer",
+    "/home/z/models/Qwen3.8-27B-NVFP4",
+    "--workload",
+    "english-code",
+    "--coding-tasks",
+    "lru",
+    "--concurrency",
+    "1",
+    "--rounds",
+    "1",
+    "--max-tokens",
+    "2048",
+    "--report",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/official-code-mtp7.json"
+  ]
+}

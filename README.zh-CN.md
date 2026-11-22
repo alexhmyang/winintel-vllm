@@ -1,0 +1,551 @@
+<div align="center">
+
+# winintel-vllm
+
+### 🚀 数萌AI · V100 大模型推理
+
+**💎 让经典算力，继续创造价值。**
+
+**⚡ 880.9 token/s 十六路总吞吐 · 🔥 592.9 token/s 八路总吞吐 · 🧠 单路 256K 长输入已测**
+
+[🌐 官方网站](https://winintel.com) · [📊 实测性能](#实测性能) · [🤖 适用模型](#适用模型) · [🛠️ 一键安装](#一键安装)
+
+[🎬 Bilibili · 数萌AI视频主页](https://space.bilibili.com/429959998) ·
+[▶️ YouTube · winintel AI](https://www.youtube.com/@winintelcom)
+
+[⭐ 点亮 Star](https://github.com/alexhmyang/winintel-vllm) ·
+[🔔 订阅更新](https://github.com/alexhmyang/winintel-vllm/subscription) ·
+[📦 下载 v0.1.0](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0)
+
+**v0.1.0 · Qwen3.8-27B · Volta / SM70**
+
+</div>
+
+---
+
+🚀 **让现有 V100 服务器，成为实用的 AI 生产力。**
+winintel-vllm 是数萌AI（**winintel AI**）面向 NVIDIA Tesla V100 的
+Qwen3.8-27B 推理方案：十六路代码生成实测总解码吞吐最高
+**880.95 token/s**，并已完成**单路完整 256K 长输入**测试。
+基于 vLLM 0.17.0 与成熟开源组件，兼顾多用户服务、长文档处理和便捷部署，
+适用于代码助手、私有知识库和企业文本应用。
+
+- ⚡ **多用户同时用：**8 张 V100 32GB、每卡 300W，八路代码生成最佳 **592.92 token/s**，十六路最佳 **880.95 token/s**。
+- 🧠 **长文档装得下：**上下文配置上限 **262,144 token**，单路完整长输入已验证代码生成与合同原文检索。
+- 🏎️ **用上成熟加速：**MTP 推测解码、主模型与草稿 CUDA Graph，以及 `WININTEL_SM70` 注意力后端。
+- 💾 **灵活加载模型：**兼容 NVFP4/FP8 检查点，在 V100 上使用 FP16 计算，并支持 FP8 KV 存储。
+- 🔌 **现有应用易接入：**OpenAI 兼容 API，支持 SSE 流式输出，适合代码助手和私有文本服务。
+- 🛠️ **一条命令安装：**随包提供基础源码，自动配置 uv 环境、编译 SM70 扩展，并提供多种部署配置。
+- ✅ **成绩有据可查：**提供测速脚本与原始记录，MTP 配置对比的 **150/150 份代码通过验证**。
+- 🤝 **欢迎社区共建：**技术来源透明，邀请开发者共同提升 V100 的推理性能与模型兼容性。
+
+## 核心能力
+
+| 能力 | 配置 |
+| --- | --- |
+| V100 多卡推理 | TP2 / TP4 / TP8 配置；TP4、TP8 有实测记录 |
+| 多请求服务 | 并发数可配置，支持独立请求与流式输出 |
+| 解码加速 | 模型内 MTP3/5/7/9/11，主模型与草稿 CUDA Graph |
+| 注意力后端 | `WININTEL_SM70` |
+| 检查点加载 | 官方 ModelOpt FP8/NVFP4 混合格式、compressed-tensors NVFP4；加载后使用 FP16 权重与计算 |
+| KV 缓存 | FP16 / FP8 E4M3 |
+| 服务上下文 | 配置上限 262,144 token |
+| 接入方式 | OpenAI 兼容 API，支持 SSE 流式响应 |
+
+DFlash2 适配器仅供开发实验，当前未通过这套 V100 配置的草稿数值验证，
+尚无已验证的加速收益。
+已公布的性能成绩使用 MTP；生产部署推荐 MTP5/MTP9。
+
+## 实测性能
+
+### 官方检查点：英文代码生成
+
+**硬件：**V100-SXM2 32GB × 8，TP8。  
+**模型：**重新下载的 NVIDIA 官方 `Qwen3.8-27B-NVFP4`，
+固定版本 `482ca0f3832238542f8f5295dde86b5f22711d80`，全部权重分片 SHA256 已核验。  
+**配置：**FP16 权重与计算、FP16 KV、MTP11、主模型与草稿 CUDA Graph，
+上下文 16,384 token，最大并发 16。
+
+**单路已测最佳：93.56 token/s**，LRU 代码全部通过检查，
+[原始记录](docs/winintel/official-code-mtp11.json)。下表统一采用每卡 300W 实测：
+
+| 并发 | 轮数 | 最佳总解码吞吐 | 平均总解码吞吐 | 最大首字等待 | 代码检查 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 3 | **93.26 token/s** | **93.06 token/s** | 188 ms | 3/3 |
+| 2 | 3 | **191.64 token/s** | **191.38 token/s** | 460 ms | 6/6 |
+| 4 | 3 | **332.96 token/s** | **332.76 token/s** | 410 ms | 12/12 |
+| 8 | 3 | **518.46 token/s** | **518.19 token/s** | 455 ms | 24/24 |
+| 16 | 2 | **802.81 token/s** | **802.10 token/s** | 599 ms | 32/32 |
+
+1–8 路各三轮，16 路两轮，77 份输出全部通过语法、LRU 行为检查和至少八项模型生成的单元测试。
+请求通过屏障同时发起，使用独立 HTTP 流式会话，正式计时前用四个输出 token 预热。
+英文 LRU 提示词 100 token，
+输出 1,677–1,746 token；贪心解码、关闭思考、正常 EOS、输出上限 2,048 token。
+解码速度按客户端接收时间计算并排除首个流式块；16 路最佳轮次包含首字等待的
+总输出吞吐为 **799.07 token/s**。
+
+全部记录采用每卡 300W 功耗上限。
+这些是短输入代码任务成绩；长上下文需按输入长度单独测试。
+
+原始记录：[1–8 路三轮结果](docs/winintel/official-code-best.json) ·
+[16 路两轮结果](docs/winintel/official-opt-mtp11-300w.json) ·
+[16 路 GPU 遥测](docs/winintel/official-opt-mtp11-300w-gpu.json) ·
+[官方模型校验清单](docs/winintel/official-model-manifest.json)。
+16 路统计以 `official-opt-mtp11-300w.json` 的对应并发档位为准。
+
+同次测试另测 CSV 解析器和 DAG 拓扑排序，单路分别为 **93.29、78.56 token/s**，
+两份代码全部通过行为及单元测试检查。
+[三类英文代码任务记录](docs/winintel/official-code-task-comparison.json)。
+
+### 300W 优化配置比较
+
+本轮补充 MTP11 满功率复测（每卡 300W、每档两轮）：
+单路最佳 **93.83 token/s**，8 路最佳总吞吐 **517.92 token/s**，
+16 路最佳总吞吐 **802.81 token/s**、平均 **802.10 token/s**。
+50 份代码全部通过检查，
+单卡最高显存占用 **29,723 MiB**。
+[复测记录](docs/winintel/official-opt-mtp11-300w.json) ·
+[优化配置比较](docs/winintel/official-opt-summary.json)
+
+在相同功率、提示词和服务配置下，比较 MTP 草稿长度：
+
+| 并发 | MTP11 平均总解码吞吐 | MTP9 平均总解码吞吐 | MTP5 平均总解码吞吐 | MTP5 对比 MTP11 |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 93.80 token/s | **94.03 token/s** | 86.78 token/s | −7.5% |
+| 8 | 516.89 token/s | 547.06 token/s | **592.26 token/s** | +14.6% |
+| 16 | 802.10 token/s | 831.58 token/s | **879.43 token/s** | +9.6% |
+
+每档两轮，三种配置共 **150 份代码全部通过验证**。
+MTP5 八路最佳 **592.92 token/s**，十六路最佳 **880.95 token/s**。
+本任务单路推荐 MTP9，高并发推荐 MTP5；复现上述满功率命令时，
+将 `SM70_SPECULATIVE_TOKENS` 分别设为 `9` 或 `5`。
+[MTP9 原始记录](docs/winintel/official-opt-mtp9-300w.json) ·
+[MTP5 原始记录](docs/winintel/official-opt-mtp5-300w.json)
+
+### 300W 长上下文：英文代码生成
+
+官方检查点，TP8、FP8 KV、MTP11、CUTLASS 预填充、主模型与草稿
+CUDA Graph，服务上下文 262,144 token，单请求，每卡最高 300W。
+沿用英文 LRU 实现及至少八项模型生成的单元测试：
+
+| 实际输入 token | 首字等待 | 输入吞吐（输入 / 首字等待） | 解码速度 | 代码检查 |
+| ---: | ---: | ---: | ---: | --- |
+| 8,192 | **2.21 秒** | **3,704.29 token/s** | **82.37 token/s** | 通过 |
+| 260,096（256K 配置，预留 2,048 输出） | **160.66 秒** | **1,618.89 token/s** | **10.83 token/s** | 通过 |
+
+输入包含重复英文参考代码，每档一轮，关闭思考、贪心解码、正常 EOS，
+输出上限 2,048 token。输入吞吐包含 HTTP 传输、预填充及首个生成块。
+实际生成分别为 1,659、1,668 token。256K 英文代码轮次
+单卡最高显存 **31,201 MiB**。
+这些成绩对应完整长输入的英文代码任务。
+[8K 原始记录](docs/winintel/official-code-context-8k-300w.json) ·
+[8K GPU 遥测](docs/winintel/official-code-context-8k-300w-gpu.json) ·
+[256K 原始记录](docs/winintel/official-code-context-256k-300w.json) ·
+[256K GPU 遥测](docs/winintel/official-code-context-256k-300w-gpu.json) ·
+[完整长上下文报告](docs/winintel/official-context-summary.json)
+
+### 追加长输入配置实测
+
+MTP5、FP8 KV、262,144 上下文、最大四路、预填充批量 12,288 token，
+CUTLASS 与 CUDA Graph，每卡 300W：
+
+| 任务 | 每路实际输入 token | 并发 | 最大首字等待 | 客户端总解码吞吐 | 验证 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 英文代码 | 8,192 | 4 | **8.56 秒** | **191.72 token/s** | 4/4 份代码 |
+| 合同原文检索 | 32,768 | 1 | 9.48 秒 | 74.51 token/s | 3/3 条款 |
+| 合同原文检索 | 262,016 | 1 | 171.77 秒 | 18.95 token/s | 3/3 条款 |
+
+两档单路检索无预热，其引擎 PREFILL 阶段实测分别为：
+
+| 输入 token | 引擎 PREFILL 耗时 | 输入 / 引擎 PREFILL 耗时 |
+| ---: | ---: | ---: |
+| 32,768 | **9.37 秒** | **3,498.94 token/s** |
+| 262,016 | **171.25 秒** | **1,530.03 token/s** |
+
+这是 vLLM 调度器记录的预填充阶段耗时，包含阶段内调度开销。
+每项一轮。扩大预填充批量未改善 256K 首字等待，
+原 MTP11 / 6,144 配置为 **163.64 秒**，本轮为 **171.77 秒**；
+单路长输入优先保留原配置。四路完整 256K 尚未实测，预估首字时间超过 180 秒。
+
+[四路 8K 原始记录](docs/winintel/official-opt-long-mtp5-batch12288-8k-c4.json) ·
+[32K 引擎指标](docs/winintel/official-opt-long-mtp5-batch12288-32k-engine-metrics.json) ·
+[256K 原始记录](docs/winintel/official-opt-long-mtp5-batch12288-256k.json) ·
+[256K 引擎指标](docs/winintel/official-opt-long-mtp5-batch12288-256k-engine-metrics.json)
+
+补充四路独立 8K 原文检索会话，MTP11、预填充批量 6,144、FP8 KV、
+服务上下文 262,144 token：
+
+| 每路输入 token | 并发 | 平均每路引擎 PREFILL | 每路输入 / 平均 PREFILL | 最大首字等待 | 客户端总解码吞吐 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 8,192 | 4 | **3.98 秒** | **2,059.69 token/s** | **9.24 秒** | **39.48 token/s** |
+
+四路全部准确引用三条原文，无预热。引擎指标覆盖四个已完成请求，
+PREFILL 阶段耗时之和为 15.91 秒；阶段时间可能重叠，因此每路速率
+不能当成 GPU 总吞吐，首字等待还包含排队。每路仅输出 73 token，
+不能直接与长代码输出成绩比较。
+
+[四路检索原始记录](docs/winintel/official-opt-long-mtp11-batch6144-8k-c4-retrieval.json) ·
+[四路预填充指标](docs/winintel/official-opt-long-mtp11-batch6144-8k-c4-retrieval-engine-metrics.json)
+
+### 历史检查点：八路代码生成 373.4 token/s
+
+**硬件：**8 张 V100-SXM2 32GB，TP8，GPU 核心时钟 1530 MHz。  
+**配置：**`Qwen3.8-27B-NVFP4` 测试检查点，FP16 计算，FP8 E4M3 KV，MTP7，
+主模型与草稿 CUDA Graph，服务上下文配置 262,144 token。
+
+| 轮次 | 并发 | 总解码吞吐 | 包含首字等待的总输出吞吐 | 最大首字等待 | 代码检查 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 第一轮 | 8 | **373.97 token/s** | 371.47 token/s | 254 ms | 8/8 |
+| 第二轮 | 8 | **372.83 token/s** | 371.04 token/s | 468 ms | 8/8 |
+| 两轮均值 | 8 | **373.40 token/s** | **371.25 token/s** | — | **16/16** |
+
+八个独立 HTTP 流式请求通过屏障同时发起，完成 LRU 缓存、CSV 解析、
+DAG 拓扑排序三类英文代码任务。贪心解码，正常 EOS，输出上限 2048 token。
+代码检查包含语法、行为检查和模型生成的单元测试。
+总解码吞吐按客户端实际接收时间计算，排除首个流式块。
+这里的吞吐对应短输入代码任务；262,144 是该服务的上下文配置。
+
+### 历史检查点：单路与三路代码生成
+
+同一硬件，TP8、MTP7、CUDA Graph，FP16 KV。每项重复两轮：
+
+| 任务 | 并发 | 解码吞吐 |
+| --- | ---: | ---: |
+| LRU 缓存实现 | 1 | **129.90 token/s** |
+| CSV 解析器实现 | 1 | **122.54 token/s** |
+| DAG 拓扑排序实现 | 1 | **111.15 token/s** |
+| 三类任务同时运行 | 3 | **288.54 token/s 总吞吐** |
+
+### TP4 实测
+
+4 张 V100-SXM2 32GB，TP4、MTP5、FP16 KV、CUDA Graph，
+上下文 8,192 token，最大并发 3，显存预算 65%。每项两轮：
+
+| 任务 | 并发 | 解码吞吐 |
+| --- | ---: | ---: |
+| LRU 缓存实现 | 1 | **97.77 token/s** |
+| CSV 解析器实现 | 1 | **92.13 token/s** |
+| DAG 拓扑排序实现 | 1 | **83.41 token/s** |
+| 三类任务同时运行 | 3 | **220.54 token/s 总吞吐** |
+
+12 份代码输出全部通过行为检查。
+[原始测试记录](docs/winintel/english-code-tp4-mtp5.json)。
+
+### 验证记录
+
+| 项目 | 已完成验证 |
+| --- | --- |
+| 八路代码生成 | 16 份输出全部通过代码检查 |
+| FP8 KV 与预填充 | 33 项算子测试通过 |
+| NVFP4 权重解码 | 496 个量化矩阵首尾行与参考逐值一致 |
+| CUDA Graph / eager 对照 | 1,024 个输出 token 一致 |
+| 8K 输入原文检索 | 三段合同原文逐字通过，首字等待 2.353 秒 |
+
+性能数据对应随包记录的实际测试检查点；权重文件标识见
+[模型清单](docs/winintel/tp8-nvfp4-model-manifest.json)。
+下表的官方模型链接提供模型选择和配置参考。
+
+原始记录：[八路输出与时间](docs/winintel/english-code-fp8kv-8seq-256k.json) ·
+[GPU 遥测](docs/winintel/english-code-fp8kv-8seq-256k-gpu.csv) ·
+[单路与三路结果](docs/winintel/english-code-tp8-mtp7.json) ·
+[算子测试](docs/winintel/fp8-kv-prefill-tests-v100.txt)
+
+## 适用模型
+
+本版本面向 **Qwen3.8-27B 文本推理**，提供 NVFP4 检查点加载、
+多卡服务与流式 API。
+
+| 项目 | 模型与格式 |
+| --- | --- |
+| 目标模型系列 | Qwen3.8-27B |
+| Qwen 官方基础模型原始链接 | [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) |
+| NVIDIA 官方 NVFP4 模型原始链接 | [Qwen3.8-27B-NVFP4](https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4) |
+| 国内基础模型镜像 | [HF Mirror · Qwen3.8-27B](https://hf-mirror.com/Qwen/Qwen3.8-27B) |
+| 国内 NVFP4 模型镜像 | [HF Mirror · Qwen3.8-27B-NVFP4](https://hf-mirror.com/nvidia/Qwen3.8-27B-NVFP4) |
+| 官方下载检查点格式 | ModelOpt MIXED_PRECISION：FP8 注意力投影 + NVFP4 MLP / 输出层，16 元素分组 |
+| 历史测试检查点格式 | compressed-tensors NVFP4，FP4 E2M1，16 元素分组 |
+| V100 执行精度 | NVFP4 权重加载时展开为 FP16；激活 FP16 |
+| 默认推测解码 | 模型内 MTP，7 个草稿 token |
+| 模型输入 | 文本 |
+
+使用本地完整模型目录，包含 `config.json`、tokenizer 与权重分片。
+安装程序会检查架构及量化格式；官方模型的配置可按上表链接查阅。
+
+### 国内模型下载
+
+在安装后的 `runtime` 目录执行，完整下载 tokenizer、配置和全部权重：
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com .venv/bin/hf download \
+  nvidia/Qwen3.8-27B-NVFP4 \
+  --revision 482ca0f3832238542f8f5295dde86b5f22711d80 \
+  --local-dir /data/models/Qwen3.8-27B-NVFP4
+```
+
+镜像对应同一官方仓库，使用原始模型 ID。可用 `--revision <commit>` 固定版本。
+模型下载由用户单独发起，耗时取决于网络带宽和模型大小。
+
+## 一键安装
+
+**推荐环境：**Linux x86_64、V100 32GB × 8、CUDA Toolkit 12.8、
+NVIDIA 驱动、C/C++ 编译工具、Git、curl。安装包内置官方 vLLM 0.17.0
+基础源码，自动创建 Python 3.12 环境、安装依赖并构建 SM70 扩展。
+
+下载 `winintel-vllm-0.1.0-qwen3.8-install.tar.gz`，解压后执行：
+
+```bash
+bash install.sh /path/to/Qwen3.8-27B-NVFP4
+```
+
+安装完成后自动启动服务。模型使用本地目录；依赖使用 uv 安装，
+Python 包默认使用清华镜像，PyTorch CUDA 12.8 包默认使用南京大学镜像。
+
+| 安装资源 | 默认地址 |
+| --- | --- |
+| Python 依赖 | `https://pypi.tuna.tsinghua.edu.cn/simple` |
+| PyTorch / torchvision / torchaudio | `https://mirrors.nju.edu.cn/pytorch/whl/cu128` |
+| 模型镜像 | `https://hf-mirror.com` |
+| uv 引导与 Python 3.12 | uv 官方渠道；可通过环境变量指定内部镜像 |
+
+替换 Python 包源、PyTorch 包源：
+
+```bash
+UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple \
+WININTEL_TORCH_INDEX_URL=https://mirrors.nju.edu.cn/pytorch/whl/cu128 \
+bash install.sh /path/to/model
+```
+
+使用官方源：
+
+```bash
+UV_INDEX_URL=https://pypi.org/simple \
+WININTEL_TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128 \
+HF_ENDPOINT=https://huggingface.co bash install.sh /path/to/model
+```
+
+已有 uv 时直接复用。引导脚本地址可设置 `WININTEL_UV_INSTALL_URL`；
+Python 构建包镜像可设置 `UV_PYTHON_INSTALL_MIRROR`。
+
+仅安装：
+
+```bash
+bash install.sh
+```
+
+后续启动：
+
+```bash
+bash start.sh /path/to/Qwen3.8-27B-NVFP4
+```
+
+### 启动配置
+
+| 配置 | 上下文 | 最大并发 | KV | 显存预算 |
+| --- | ---: | ---: | --- | ---: |
+| `standard` 默认 | 8,192 | 8 | FP16 | 40% |
+| `throughput` | 8,192 | 8 | FP8 E4M3 | 80% |
+| `long` | 262,144 | 8 | FP8 E4M3 | 80% |
+
+```bash
+WININTEL_PROFILE=throughput bash start.sh /path/to/model
+WININTEL_PROFILE=long bash start.sh /path/to/model
+```
+
+环境变量支持 `SM70_PORT`、`SM70_MAX_MODEL_LEN`、`SM70_MAX_NUM_SEQS`、
+`SM70_KV_CACHE_DTYPE`、`SM70_MEMORY_UTILIZATION`、
+`SM70_TENSOR_PARALLEL_SIZE`、`SM70_SERVED_MODEL_NAME`、
+`SM70_SPECULATIVE_TOKENS`、`SM70_MAX_BATCHED_TOKENS` 和 `MAX_JOBS`。
+上表为 TP8 默认值；TP4 默认显存预算 80%，TP2 为 92%。
+
+### TP4：四卡运行
+
+```bash
+SM70_TENSOR_PARALLEL_SIZE=4 CUDA_VISIBLE_DEVICES=0,1,2,3 \
+WININTEL_PROFILE=throughput bash start.sh /path/to/model
+```
+
+复现上面的 TP4 历史测试配置：
+
+```bash
+SM70_TENSOR_PARALLEL_SIZE=4 CUDA_VISIBLE_DEVICES=0,1,2,3 \
+SM70_SPECULATIVE_TOKENS=5 SM70_MAX_NUM_SEQS=3 \
+SM70_MEMORY_UTILIZATION=0.65 SM70_KV_CACHE_DTYPE=auto \
+bash start.sh /path/to/model
+```
+
+API 模型名称：`winintel-qwen27-nvfp4-tp4`。
+
+### TP2：双卡运行配置
+
+```bash
+SM70_TENSOR_PARALLEL_SIZE=2 CUDA_VISIBLE_DEVICES=0,1 \
+SM70_MAX_MODEL_LEN=4096 SM70_KV_CACHE_DTYPE=fp8_e4m3 \
+bash start.sh /path/to/model
+```
+
+TP2 使用 V100 32GB × 2，默认最大并发 1、显存预算 92%、
+预填充分块 512 token。权重加载后为 FP16，需为 KV、MTP 和 CUDA Graph
+预留显存。此配置待 GPU 实测，实际可用上下文以启动时 KV 容量为准。
+API 模型名称：`winintel-qwen27-nvfp4-tp2`。
+
+### 16 并发服务
+
+```bash
+WININTEL_PROFILE=throughput SM70_MAX_NUM_SEQS=16 \
+bash start.sh /path/to/model
+```
+
+启动程序按并发数自动生成 CUDA Graph 捕获批次。
+
+复现官方检查点的 MTP11 测速配置：
+
+```bash
+sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -ac 877,1530
+sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -pl 300
+SM70_SPECULATIVE_TOKENS=11 SM70_MAX_MODEL_LEN=16384 \
+SM70_MAX_NUM_SEQS=16 SM70_MEMORY_UTILIZATION=0.80 \
+SM70_KV_CACHE_DTYPE=auto WININTEL_SM70_TORCH_PREFILL=1 \
+bash start.sh /path/to/model
+```
+
+以上命令使用硬件最高 300W 功耗上限。
+使用下方英文 LRU 测速命令，分别设置 `C=1`、`2`、`4`、`8`、`16`。
+
+### 长上下文运行
+
+TP8 配置 256K 上下文，先以单路请求验证：
+
+```bash
+sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -pl 300
+WININTEL_PROFILE=long SM70_MAX_NUM_SEQS=1 SM70_SPECULATIVE_TOKENS=11 \
+bash start.sh /path/to/model
+```
+
+TP4 配置 32K 上下文：
+
+```bash
+SM70_TENSOR_PARALLEL_SIZE=4 CUDA_VISIBLE_DEVICES=0,1,2,3 \
+WININTEL_PROFILE=throughput SM70_MAX_MODEL_LEN=32768 \
+SM70_MAX_NUM_SEQS=1 bash start.sh /path/to/model
+```
+
+官方检查点，TP8、FP8 KV、MTP11、CUTLASS 预填充、CUDA Graph，
+单请求，每卡硬件最高 **300W** 功耗上限：
+
+| 实际输入 token | 首字等待 | 输入吞吐（输入 / 首字等待） | 生成速度 | 原文检索 |
+| ---: | ---: | ---: | ---: | --- |
+| 8,192 | **2.48 秒** | **3,302.89 token/s** | **98.80 token/s** | 3/3 |
+| 32,768 | **9.68 秒** | **3,385.23 token/s** | **91.76 token/s** | 3/3 |
+| 262,016（接近 256K） | **163.64 秒** | **1,601.17 token/s** | **18.73 token/s** | 3/3 |
+
+每项实测一轮，正文 5%、50%、95% 位置放入三段合同条款，
+背景为重复的合同干扰资料；正常 EOS，实际生成 73 token，输出上限 128 token。
+输入吞吐包含 HTTP 传输、预填充和首个生成块的时间。
+256K 轮次单卡最高显存 **32,431 MiB**，
+采样瞬时功耗最高 **314.01W**，设置上限仍为 300W。
+
+[8K 原始记录](docs/winintel/official-context-8k-cutlass-300w.json) ·
+[32K 原始记录](docs/winintel/official-context-32k-cutlass-300w.json) ·
+[256K 原始记录](docs/winintel/official-context-256k-300w.json) ·
+[256K GPU 遥测](docs/winintel/official-context-256k-300w-gpu.json) ·
+[256K 配置](docs/winintel/official-context-256k-300w-configuration.json)
+
+`long` 配置默认启用已有的 PyTorch CUTLASS 预填充路径，
+配合 `WININTEL_SM70` 注意力后端与主模型、草稿 CUDA Graph。
+上下文长度包含输入与输出；256K 为服务配置上限。
+长输入吞吐与首字等待需按实际输入长度单独测量，
+可用容量由启动时的 KV 缓存预算决定。
+
+## API 接入
+
+服务地址：`http://服务器IP:8037/v1`  
+模型名称：`winintel-qwen27-nvfp4-tp8`
+
+```bash
+curl http://127.0.0.1:8037/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "winintel-qwen27-nvfp4-tp8",
+    "messages": [{"role": "user", "content": "写一个 Python LRU 缓存类"}],
+    "temperature": 0,
+    "max_tokens": 512,
+    "stream": true
+  }'
+```
+
+### 复现并发测试
+
+在安装后的 `runtime` 目录执行。每次只测一个并发档位，
+`C=1` 可替换为 `2`、`4`、`8`、`16`；服务最大并发设为 16：
+
+```bash
+C=1
+.venv/bin/python scripts/run_sm70_guarded.py \
+  --gpus 0,1,2,3,4,5,6,7 \
+  --report "code-c${C}-gpu.json" -- \
+  .venv/bin/python scripts/benchmark_sm70_http.py \
+  --base-url http://127.0.0.1:8037/v1 \
+  --model winintel-qwen27-nvfp4-tp8 \
+  --tokenizer /path/to/model \
+  --workload english-code --coding-tasks lru --concurrency "$C" --rounds 3 \
+  --first-token-timeout-seconds 180 \
+  --max-tokens 2048 --report "code-c${C}.json"
+```
+
+各请求通过屏障同时发起，保存输入输出、首字等待、解码速度、
+总吞吐和代码行为检查结果；监控脚本记录显存和功耗，
+每个请求的首字等待上限为 180 秒。模型下载与整轮测试时长不受此上限限制。
+本轮测试采用每卡硬件最高 300W 功耗上限。
+运行前按已有吞吐估算首字等待；英文 LRU 代码任务用于复现最快任务的成绩。
+报告同时保存通过代码检查的最佳轮次与均值。
+
+长输入检索，先从 8K 开始：
+
+```bash
+.venv/bin/python scripts/run_sm70_guarded.py \
+  --gpus 0,1,2,3,4,5,6,7 \
+  --report context-8k-gpu.json -- \
+  .venv/bin/python scripts/benchmark_sm70_http.py \
+  --base-url http://127.0.0.1:8037/v1 \
+  --model winintel-qwen27-nvfp4-tp8 --tokenizer /path/to/model \
+  --workload context-retrieval --context-lengths 8192 \
+  --concurrency 1 --rounds 1 --max-tokens 128 --report context-8k.json
+```
+
+服务需预留输出空间，例如输入 8,192 token 时，启动设置
+`SM70_MAX_MODEL_LEN=16384`。逐档选择 `32768`、`65536`、`131072`、
+`262016` 作为测试输入；接近 256K 的输入预留 128 token 输出。
+报告保存实际输入 token 数、三处检索结果、首字等待与每路解码速度。
+
+长上下文英文代码测速，使用相同的 LRU 实现与单元测试任务：
+
+```bash
+.venv/bin/python scripts/benchmark_sm70_http.py \
+  --base-url http://127.0.0.1:8037/v1 \
+  --model winintel-qwen27-nvfp4-tp8 --tokenizer /path/to/model \
+  --workload english-code --coding-tasks lru --coding-context-tokens 8192 \
+  --concurrency 1 --rounds 1 --max-tokens 2048 --report code-context-8k.json
+```
+
+将 `--coding-context-tokens` 改为 `260096`，在 262,144 token
+上下文配置内预留 2,048 token 输出。背景为重复英文参考代码，
+每次请求均记录实际输入长度，生成代码必须通过行为检查及至少八项单元测试。
+
+## 社区与联系
+
+欢迎共同优化 V100 多并发吞吐、长输入预填充和模型适配，
+分享可复现的性能结果与部署经验。
+
+⭐ 点亮 **Star**，让更多 V100 用户发现本项目。
+🔔 点击 **Watch → Custom → Releases**，订阅新版本通知。
+🐛 欢迎[提交 Issue](https://github.com/alexhmyang/winintel-vllm/issues)
+或 Pull Request，附上硬件配置、复现步骤与实测结果。
+📺 关注 Bilibili、订阅 YouTube，观看演示与部署视频。
+
+**数萌AI服务器 (winintel)**  
+官方网站：[winintel.com](https://winintel.com)  
+联系邮箱：service@winintel.com
+
+本项目基于 vLLM 及开源组件，使用 AI 辅助开发与整理。
+许可证：Apache-2.0；部分组件 MIT。详见 [NOTICE](NOTICE) 与
+[THIRD_PARTY.md](THIRD_PARTY.md)。

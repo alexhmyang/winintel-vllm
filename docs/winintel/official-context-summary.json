@@ -1,0 +1,122 @@
+{
+  "model_id": "nvidia/Qwen3.8-27B-NVFP4",
+  "revision": "482ca0f3832238542f8f5295dde86b5f22711d80",
+  "hardware": "8 x V100-SXM2 32GB",
+  "tensor_parallel_size": 8,
+  "power_limit_w_per_gpu": 300,
+  "hardware_max_power_limit_w_per_gpu": 300,
+  "kv_cache_dtype": "fp8_e4m3",
+  "max_model_len": 262144,
+  "max_num_seqs": 1,
+  "speculative_tokens": 11,
+  "attention_backend": "WININTEL_SM70",
+  "cutlass_prefill": true,
+  "main_and_draft_cuda_graph": true,
+  "prefix_caching": false,
+  "first_token_timeout_seconds": 180,
+  "measurement": "Client SSE stream. Effective input throughput = prompt tokens / TTFT, including prefill, HTTP transport and the first generated chunk. Decode speed excludes the first streamed chunk.",
+  "context_budget": "262016 input + 128 output for retrieval; 260096 input + 2048 output for English code.",
+  "completed_measurements": [
+    {
+      "report": "official-context-8k-cutlass-300w.json",
+      "workload": "Long-context exact retrieval at 5%, 50%, and 95%",
+      "concurrency": 1,
+      "round": 1,
+      "prompt_tokens": 8192,
+      "completion_tokens": 73,
+      "ttft_seconds": 2.480249530999572,
+      "effective_input_tokens_per_second": 3302.893478100375,
+      "decode_tokens_per_second": 98.79959439591018,
+      "validation_passed": true,
+      "maximum_temperature_c": 56,
+      "maximum_memory_mib": 28565,
+      "maximum_sampled_power_w": 228.52,
+      "active_sm_clock_mhz_range": [
+        1530,
+        1530
+      ],
+      "temperature_guard_c": 75
+    },
+    {
+      "report": "official-context-32k-cutlass-300w.json",
+      "workload": "Long-context exact retrieval at 5%, 50%, and 95%",
+      "concurrency": 1,
+      "round": 1,
+      "prompt_tokens": 32768,
+      "completion_tokens": 73,
+      "ttft_seconds": 9.67969961399649,
+      "effective_input_tokens_per_second": 3385.229016055279,
+      "decode_tokens_per_second": 91.76212061912065,
+      "validation_passed": true,
+      "maximum_temperature_c": 61,
+      "maximum_memory_mib": 28565,
+      "maximum_sampled_power_w": 294.53,
+      "active_sm_clock_mhz_range": [
+        1530,
+        1530
+      ],
+      "temperature_guard_c": 75
+    },
+    {
+      "report": "official-context-256k-300w.json",
+      "workload": "Long-context exact retrieval at 5%, 50%, and 95%",
+      "concurrency": 1,
+      "round": 1,
+      "prompt_tokens": 262016,
+      "completion_tokens": 73,
+      "ttft_seconds": 163.64007655000023,
+      "effective_input_tokens_per_second": 1601.1725582390632,
+      "decode_tokens_per_second": 18.732497296028257,
+      "validation_passed": true,
+      "maximum_temperature_c": 74,
+      "maximum_memory_mib": 32431,
+      "maximum_sampled_power_w": 314.01,
+      "active_sm_clock_mhz_range": [
+        1477,
+        1530
+      ],
+      "temperature_guard_c": 75
+    },
+    {
+      "report": "official-code-context-8k-300w.json",
+      "workload": "English Python implementation and unit tests",
+      "concurrency": 1,
+      "round": 1,
+      "prompt_tokens": 8192,
+      "completion_tokens": 1659,
+      "ttft_seconds": 2.211488492997887,
+      "effective_input_tokens_per_second": 3704.2923921774286,
+      "decode_tokens_per_second": 82.37015678765594,
+      "validation_passed": true,
+      "maximum_temperature_c": 59,
+      "maximum_memory_mib": 28565,
+      "maximum_sampled_power_w": 236.59,
+      "active_sm_clock_mhz_range": [
+        1530,
+        1530
+      ],
+      "temperature_guard_c": 75
+    },
+    {
+      "report": "official-code-context-256k-300w.json",
+      "workload": "English Python implementation and unit tests",
+      "concurrency": 1,
+      "round": 1,
+      "prompt_tokens": 260096,
+      "completion_tokens": 1668,
+      "ttft_seconds": 160.66352063299564,
+      "effective_input_tokens_per_second": 1618.886471398435,
+      "decode_tokens_per_second": 10.826864094769078,
+      "validation_passed": true,
+      "temperature_guard_c": 80,
+      "maximum_temperature_c": 74,
+      "maximum_memory_mib": 31201,
+      "maximum_sampled_power_w": 317.83,
+      "active_sm_clock_mhz_range": [
+        1477,
+        1530
+      ]
+    }
+  ],
+  "current_temperature_guard_c": 80
+}

@@ -1,0 +1,8 @@
+# Author: 数萌AI服务器 (winintel)
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.cu text eol=lf
+*.h text eol=lf

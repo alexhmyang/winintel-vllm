@@ -1,0 +1,27 @@
+# Author: 数萌AI服务器 (winintel)
+.venv/
+.installer.venv/
+runtime/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+build/
+*.egg-info/
+.env
+.env.*
+.winintel_tools/
+.netrc
+.git-credentials
+credentials*.json
+*credentials*.json
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*
+vendor/*.tar.gz
+*.log
+docs/winintel/official-code-16-stable.json
+docs/winintel/official-code-16-stable-gpu.json
+docs/winintel/official-code-16-stable-configuration.json

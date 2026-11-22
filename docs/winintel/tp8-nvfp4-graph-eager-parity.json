@@ -1,0 +1,70 @@
+{
+  "scope": "Greedy CUDA Graph versus eager, same NVFP4-to-FP16 TP8 path; 128 output tokens per request",
+  "checks": [
+    {
+      "prompt_length": "short",
+      "concurrency": 1,
+      "request_index": 0,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "short",
+      "concurrency": 3,
+      "request_index": 0,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "short",
+      "concurrency": 3,
+      "request_index": 1,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "short",
+      "concurrency": 3,
+      "request_index": 2,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "long",
+      "concurrency": 1,
+      "request_index": 0,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "long",
+      "concurrency": 3,
+      "request_index": 0,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "long",
+      "concurrency": 3,
+      "request_index": 1,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    },
+    {
+      "prompt_length": "long",
+      "concurrency": 3,
+      "request_index": 2,
+      "token_count": 128,
+      "tokens_equal": true,
+      "text_equal": true
+    }
+  ],
+  "all_equal": true
+}

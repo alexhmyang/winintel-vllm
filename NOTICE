@@ -1,0 +1,21 @@
+winintel-vllm — Qwen SM70 release
+Author of project adaptations: 数萌AI服务器 (winintel)
+Website: https://winintel.com
+Email: service@winintel.com
+
+This distribution includes modified files from vLLM 0.17.0.
+Copyright contributors to the vLLM project.
+https://github.com/vllm-project/vllm
+Licensed under Apache License 2.0; existing upstream notices are retained.
+
+Project adaptations are distributed under Apache License 2.0 except where
+a file states another license. Attribution does not certify independent
+authorship of every algorithm or file.
+
+vllm/winintel/sm70/dflash2_layers.py includes Z Lab DFlash/speculators
+adaptations under the MIT License. Copyright (c) 2026 Z Lab.
+The complete MIT permission and warranty notice is retained in that file.
+
+Runtime dependencies retain their own licenses, including PyTorch,
+compressed-tensors, NVIDIA CUDA and cuBLAS. Dependencies and model weights
+are not bundled. See THIRD_PARTY.md for source details.

@@ -1,0 +1,32 @@
+{
+  "winintel_kernels/nvfp4.py": {
+    "runtime_sha256": "f02034b12aa2d42dae4e69097223bb95a8acfea9ea547a4137a3aa771b579bdc",
+    "archive_sha256": "f02034b12aa2d42dae4e69097223bb95a8acfea9ea547a4137a3aa771b579bdc",
+    "matched": true
+  },
+  "vllm/winintel/sm70/nvfp4.py": {
+    "runtime_sha256": "117c64a9ff395bd200ec7b294fa8d182b45735455b7ac25780a249009a3d8c76",
+    "archive_sha256": "117c64a9ff395bd200ec7b294fa8d182b45735455b7ac25780a249009a3d8c76",
+    "matched": true
+  },
+  "vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors.py": {
+    "runtime_sha256": "b4ab39829fa4579f32e049b3385e2db2ca532681523cd9cb10ca8cf52422f645",
+    "archive_sha256": "b4ab39829fa4579f32e049b3385e2db2ca532681523cd9cb10ca8cf52422f645",
+    "matched": true
+  },
+  "vllm/model_executor/layers/rotary_embedding/common.py": {
+    "runtime_sha256": "1b80c039ea5285f19b6c894dc8399c034e53a435418912632d492677830c4987",
+    "archive_sha256": "1b80c039ea5285f19b6c894dc8399c034e53a435418912632d492677830c4987",
+    "matched": true
+  },
+  "vllm/model_executor/models/qwen3_next.py": {
+    "runtime_sha256": "c657e7dfec157bb446394018b13691b7fe620addd3ad9e38291ec7ab27610da0",
+    "archive_sha256": "c657e7dfec157bb446394018b13691b7fe620addd3ad9e38291ec7ab27610da0",
+    "matched": true
+  },
+  "scripts/serve_sm70_qwen_tp8.sh": {
+    "runtime_sha256": "f1903ce8b1563037b5d055daeeebf4e83495d91d53ddf3b1381e994a78e54920",
+    "archive_sha256": "f1903ce8b1563037b5d055daeeebf4e83495d91d53ddf3b1381e994a78e54920",
+    "matched": true
+  }
+}

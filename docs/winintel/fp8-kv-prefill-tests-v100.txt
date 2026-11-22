@@ -1,0 +1,43 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0 -- /home/z/winintel-017/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/z/winintel-vllm-dflash2
+configfile: pyproject.toml
+plugins: anyio-4.16.0, platformdirs-4.14.5
+collecting ... collected 174 items / 141 deselected / 33 selected
+
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens0-64-16] PASSED [  3%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens0-128-16] PASSED [  6%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens0-256-32] PASSED [  9%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens1-64-16] PASSED [ 12%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens1-128-16] PASSED [ 15%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens1-256-32] PASSED [ 18%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens2-64-16] PASSED [ 21%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens2-128-16] PASSED [ 24%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[upstream-query_lens2-256-32] PASSED [ 27%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens0-64-16] PASSED [ 30%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens0-128-16] PASSED [ 33%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens0-256-32] PASSED [ 36%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens1-64-16] PASSED [ 39%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens1-128-16] PASSED [ 42%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens1-256-32] PASSED [ 45%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens2-64-16] PASSED [ 48%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens2-128-16] PASSED [ 51%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[packed-query_lens2-256-32] PASSED [ 54%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens0-64-16] PASSED [ 57%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens0-128-16] PASSED [ 60%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens0-256-32] PASSED [ 63%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens1-64-16] PASSED [ 66%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens1-128-16] PASSED [ 69%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens1-256-32] PASSED [ 72%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens2-64-16] PASSED [ 75%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens2-128-16] PASSED [ 78%]
+tests/winintel/sm70/test_sm70_ops.py::test_cutlass_prefill_preserves_prefix_and_request_boundaries[fp8-query_lens2-256-32] PASSED [ 81%]
+tests/winintel/sm70/test_sm70_ops.py::test_fp8_cache_graph_preserves_scales_pages_and_new_inputs[1-64-scalar] PASSED [ 84%]
+tests/winintel/sm70/test_sm70_ops.py::test_fp8_cache_graph_preserves_scales_pages_and_new_inputs[1-128-rounded] PASSED [ 87%]
+tests/winintel/sm70/test_sm70_ops.py::test_fp8_cache_graph_preserves_scales_pages_and_new_inputs[1-128-tiled] PASSED [ 90%]
+tests/winintel/sm70/test_sm70_ops.py::test_fp8_cache_graph_preserves_scales_pages_and_new_inputs[3-64-scalar] PASSED [ 93%]
+tests/winintel/sm70/test_sm70_ops.py::test_fp8_cache_graph_preserves_scales_pages_and_new_inputs[3-128-rounded] PASSED [ 96%]
+tests/winintel/sm70/test_sm70_ops.py::test_fp8_cache_graph_preserves_scales_pages_and_new_inputs[3-128-tiled] PASSED [100%]
+
+===================== 33 passed, 141 deselected in 12.12s ======================

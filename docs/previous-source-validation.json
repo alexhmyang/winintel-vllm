@@ -1,0 +1,9 @@
+{
+  "archive_sha256": "53382d13a19092e3088266b9a5087d8f17171e146b45ce0c98271e6f4798e931",
+  "verified_source_files": 881,
+  "fresh_official_017_overlay": "passed",
+  "python_compilation": "passed",
+  "prepared_source_sha256": "4ffbc9b394541df03221ca9578af9f7bbc3d1e6d926eb47e641fc74ad1dacac4",
+  "prepared_source_extraction_and_compilation": "passed",
+  "prepared_native_sources_match_overlay": "passed"
+}

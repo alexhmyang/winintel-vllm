@@ -1,0 +1,52 @@
+{
+  "runtime": {
+    "pid": 279844,
+    "started": 1795268977.7897723,
+    "command": [
+      "bash",
+      "/home/z/winintel-vllm-functional/qwen38-best-code/serve_sm70_qwen_tp8.sh",
+      "/home/z/models/Qwen3.8-27B-NVFP4"
+    ],
+    "settings": {
+      "WININTEL_SM70_TORCH_PREFILL": "1",
+      "ENGINE_ROOT": "/home/z/winintel-vllm-qwen38-bench",
+      "CUDA_HOME": "/usr/local/cuda-12.8",
+      "SM70_SPECULATIVE_TOKENS": "11",
+      "SM70_KV_CACHE_DTYPE": "fp8_e4m3",
+      "SM70_MAX_NUM_SEQS": "1",
+      "SM70_MAX_MODEL_LEN": "262144",
+      "SM70_MEMORY_UTILIZATION": "0.80",
+      "SM70_PORT": "8041"
+    }
+  },
+  "command": [
+    "/home/z/winintel-vllm-qwen38-bench/.venv/bin/python",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/run_sm70_guarded.py",
+    "--gpus",
+    "0,1,2,3,4,5,6,7",
+    "--report",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/official-context-8k-cutlass-300w-gpu.json",
+    "--",
+    "/home/z/winintel-vllm-qwen38-bench/.venv/bin/python",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/benchmark_sm70_http.py",
+    "--base-url",
+    "http://127.0.0.1:8041/v1",
+    "--model",
+    "winintel-qwen27-nvfp4-tp8",
+    "--tokenizer",
+    "/home/z/models/Qwen3.8-27B-NVFP4",
+    "--workload",
+    "context-retrieval",
+    "--concurrency",
+    "1",
+    "--rounds",
+    "1",
+    "--max-tokens",
+    "128",
+    "--report",
+    "/home/z/winintel-vllm-functional/qwen38-best-code/official-context-8k-cutlass-300w.json",
+    "--context-lengths",
+    "8192"
+  ],
+  "power_limit_w": 300
+}

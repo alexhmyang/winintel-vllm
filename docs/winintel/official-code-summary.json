@@ -1,0 +1,144 @@
+{
+    "model_id":  "nvidia/Qwen3.8-27B-NVFP4",
+    "revision":  "482ca0f3832238542f8f5295dde86b5f22711d80",
+    "hardware":  "8 x Tesla V100-SXM2 32GB",
+    "tensor_parallel_size":  8,
+    "speculative_tokens":  11,
+    "kv_cache_dtype":  "auto (FP16)",
+    "max_model_len":  16384,
+    "measurement":  "Client streaming decode, first chunk excluded",
+    "selected_task":  "English Python LRU implementation with at least eight generated unittest cases",
+    "single_best_decode_tokens_per_second":  93.55983616138745,
+    "single_best_report":  "official-code-mtp11.json",
+    "matrix":  [
+                   {
+                       "concurrency":  1,
+                       "best_decode_tokens_per_second":  93.26145212276106,
+                       "mean_decode_tokens_per_second":  93.05874682061142,
+                       "best_output_tokens_per_second":  92.38423417200346,
+                       "passed_rounds":  3,
+                       "maximum_ttft_seconds":  0.18821487900277137,
+                       "passed_requests":  3,
+                       "requests":  3,
+                       "power_limit_w_per_gpu":  300,
+                       "report":  "official-code-best.json"
+                   },
+                   {
+                       "concurrency":  2,
+                       "best_decode_tokens_per_second":  191.64118812077055,
+                       "mean_decode_tokens_per_second":  191.38246967055863,
+                       "best_output_tokens_per_second":  189.9279173841228,
+                       "passed_rounds":  3,
+                       "maximum_ttft_seconds":  0.45985210099752294,
+                       "passed_requests":  6,
+                       "requests":  6,
+                       "power_limit_w_per_gpu":  300,
+                       "report":  "official-code-best.json"
+                   },
+                   {
+                       "concurrency":  4,
+                       "best_decode_tokens_per_second":  332.9615815684073,
+                       "mean_decode_tokens_per_second":  332.76374904319124,
+                       "best_output_tokens_per_second":  330.37229291244273,
+                       "passed_rounds":  3,
+                       "maximum_ttft_seconds":  0.40975204399728682,
+                       "passed_requests":  12,
+                       "requests":  12,
+                       "power_limit_w_per_gpu":  300,
+                       "report":  "official-code-best.json"
+                   },
+                   {
+                       "concurrency":  8,
+                       "best_decode_tokens_per_second":  518.4558817713894,
+                       "mean_decode_tokens_per_second":  518.1905891940996,
+                       "best_output_tokens_per_second":  515.0910621732945,
+                       "passed_rounds":  3,
+                       "maximum_ttft_seconds":  0.45515979299671017,
+                       "passed_requests":  24,
+                       "requests":  24,
+                       "power_limit_w_per_gpu":  300,
+                       "report":  "official-code-best.json"
+                   },
+                   {
+                       "concurrency":  16,
+                       "best_decode_tokens_per_second":  804.7819923923624,
+                       "mean_decode_tokens_per_second":  800.0729964212118,
+                       "best_output_tokens_per_second":  795.3973597879149,
+                       "passed_rounds":  3,
+                       "maximum_ttft_seconds":  0.62475179500324884,
+                       "passed_requests":  48,
+                       "requests":  48,
+                       "power_limit_w_per_gpu":  220,
+                       "report":  "official-code-16-stable.json"
+                   }
+               ],
+    "task_comparison":  [
+                            {
+                                "task":  "lru",
+                                "decode_tokens_per_second":  92.90821467464912,
+                                "behavior_passed":  true
+                            },
+                            {
+                                "task":  "csv",
+                                "decode_tokens_per_second":  93.28880506615847,
+                                "behavior_passed":  true
+                            },
+                            {
+                                "task":  "dag",
+                                "decode_tokens_per_second":  78.56118091908861,
+                                "behavior_passed":  true
+                            }
+                        ],
+    "gpu":  {
+                "best":  {
+                             "exit_code":  -15,
+                             "error":  "GPU temperature limit reached during evaluation",
+                             "maximum_memory_mib_per_gpu":  29987,
+                             "maximum_temperature_c":  75,
+                             "maximum_power_w_per_gpu":  259.93,
+                             "minimum_sm_clock_mhz":  1530,
+                             "maximum_sm_clock_mhz":  1530
+                         },
+                "16-stable":  {
+                                  "exit_code":  0,
+                                  "error":  null,
+                                  "maximum_memory_mib_per_gpu":  29987,
+                                  "maximum_temperature_c":  72,
+                                  "maximum_power_w_per_gpu":  237.71,
+                                  "minimum_sm_clock_mhz":  1470,
+                                  "maximum_sm_clock_mhz":  1530
+                              },
+                "mtp7":  {
+                             "exit_code":  0,
+                             "error":  null,
+                             "maximum_memory_mib_per_gpu":  28225,
+                             "maximum_temperature_c":  53,
+                             "maximum_power_w_per_gpu":  141.03,
+                             "minimum_sm_clock_mhz":  1530,
+                             "maximum_sm_clock_mhz":  1530
+                         },
+                "mtp11":  {
+                              "exit_code":  0,
+                              "error":  null,
+                              "maximum_memory_mib_per_gpu":  28265,
+                              "maximum_temperature_c":  53,
+                              "maximum_power_w_per_gpu":  144.21,
+                              "minimum_sm_clock_mhz":  1530,
+                              "maximum_sm_clock_mhz":  1530
+                          },
+                "task-comparison":  {
+                                        "exit_code":  0,
+                                        "error":  null,
+                                        "maximum_memory_mib_per_gpu":  29987,
+                                        "maximum_temperature_c":  65,
+                                        "maximum_power_w_per_gpu":  152.79,
+                                        "minimum_sm_clock_mhz":  1530,
+                                        "maximum_sm_clock_mhz":  1530
+                                    }
+            },
+    "loader_validation":  {
+                              "suite":  "tests/winintel/test_validation_tools.py",
+                              "passed":  15
+                          },
+    "note":  "The 16-request matrix uses the completed three-round 220W run. The earlier 300W multi-level run was stopped by its 75C guard after one completed 16-request round."
+}
