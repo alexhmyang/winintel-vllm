@@ -30,7 +30,7 @@ Qwen3.8-27B 推理方案：十六路代码生成实测总解码吞吐最高
 基于 vLLM 0.17.0 与成熟开源组件，兼顾多用户服务、长文档处理和便捷部署，
 适用于代码助手、私有知识库和企业文本应用。
 
-- ⚡ **多用户同时用：**8 张 V100 32GB、每卡 300W，八路代码生成最佳 **592.92 token/s**，十六路最佳 **880.95 token/s**。
+- ⚡ **多用户同时用：**8 张 V100 32GB，八路代码生成最佳 **592.92 token/s**，十六路最佳 **880.95 token/s**。
 - 🧠 **长文档装得下：**上下文配置上限 **262,144 token**，单路完整长输入已验证代码生成与合同原文检索。
 - 🏎️ **用上成熟加速：**MTP 推测解码、主模型与草稿 CUDA Graph，以及 `WININTEL_SM70` 注意力后端。
 - 💾 **灵活加载模型：**兼容 NVFP4/FP8 检查点，在 V100 上使用 FP16 计算，并支持 FP8 KV 存储。
@@ -67,7 +67,7 @@ DFlash2 适配器仅供开发实验，当前未通过这套 V100 配置的草稿
 上下文 16,384 token，最大并发 16。
 
 **单路已测最佳：93.56 token/s**，LRU 代码全部通过检查，
-[原始记录](docs/winintel/official-code-mtp11.json)。下表统一采用每卡 300W 实测：
+[网页测试报告](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)。各并发档位实测如下：
 
 | 并发 | 轮数 | 最佳总解码吞吐 | 平均总解码吞吐 | 最大首字等待 | 代码检查 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -84,30 +84,24 @@ DFlash2 适配器仅供开发实验，当前未通过这套 V100 配置的草稿
 解码速度按客户端接收时间计算并排除首个流式块；16 路最佳轮次包含首字等待的
 总输出吞吐为 **799.07 token/s**。
 
-全部记录采用每卡 300W 功耗上限。
 这些是短输入代码任务成绩；长上下文需按输入长度单独测试。
 
-原始记录：[1–8 路三轮结果](docs/winintel/official-code-best.json) ·
-[16 路两轮结果](docs/winintel/official-opt-mtp11-300w.json) ·
-[16 路 GPU 遥测](docs/winintel/official-opt-mtp11-300w-gpu.json) ·
-[官方模型校验清单](docs/winintel/official-model-manifest.json)。
-16 路统计以 `official-opt-mtp11-300w.json` 的对应并发档位为准。
+[查看逐轮结果、显存与模型校验表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)。
 
 同次测试另测 CSV 解析器和 DAG 拓扑排序，单路分别为 **93.29、78.56 token/s**，
 两份代码全部通过行为及单元测试检查。
-[三类英文代码任务记录](docs/winintel/official-code-task-comparison.json)。
+[三类英文代码任务结果表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)。
 
-### 300W 优化配置比较
+### 优化配置比较
 
-本轮补充 MTP11 满功率复测（每卡 300W、每档两轮）：
+本轮补充 MTP11 复测（每档两轮）：
 单路最佳 **93.83 token/s**，8 路最佳总吞吐 **517.92 token/s**，
 16 路最佳总吞吐 **802.81 token/s**、平均 **802.10 token/s**。
 50 份代码全部通过检查，
 单卡最高显存占用 **29,723 MiB**。
-[复测记录](docs/winintel/official-opt-mtp11-300w.json) ·
-[优化配置比较](docs/winintel/official-opt-summary.json)
+[复测与优化配置比较表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
-在相同功率、提示词和服务配置下，比较 MTP 草稿长度：
+在相同提示词和服务配置下，比较 MTP 草稿长度：
 
 | 并发 | MTP11 平均总解码吞吐 | MTP9 平均总解码吞吐 | MTP5 平均总解码吞吐 | MTP5 对比 MTP11 |
 | ---: | ---: | ---: | ---: | ---: |
@@ -117,15 +111,14 @@ DFlash2 适配器仅供开发实验，当前未通过这套 V100 配置的草稿
 
 每档两轮，三种配置共 **150 份代码全部通过验证**。
 MTP5 八路最佳 **592.92 token/s**，十六路最佳 **880.95 token/s**。
-本任务单路推荐 MTP9，高并发推荐 MTP5；复现上述满功率命令时，
+本任务单路推荐 MTP9，高并发推荐 MTP5；复现上述测速命令时，
 将 `SM70_SPECULATIVE_TOKENS` 分别设为 `9` 或 `5`。
-[MTP9 原始记录](docs/winintel/official-opt-mtp9-300w.json) ·
-[MTP5 原始记录](docs/winintel/official-opt-mtp5-300w.json)
+[MTP9 / MTP5 逐轮结果表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
-### 300W 长上下文：英文代码生成
+### 长上下文：英文代码生成
 
 官方检查点，TP8、FP8 KV、MTP11、CUTLASS 预填充、主模型与草稿
-CUDA Graph，服务上下文 262,144 token，单请求，每卡最高 300W。
+CUDA Graph，服务上下文 262,144 token，单请求。
 沿用英文 LRU 实现及至少八项模型生成的单元测试：
 
 | 实际输入 token | 首字等待 | 输入吞吐（输入 / 首字等待） | 解码速度 | 代码检查 |
@@ -138,16 +131,12 @@ CUDA Graph，服务上下文 262,144 token，单请求，每卡最高 300W。
 实际生成分别为 1,659、1,668 token。256K 英文代码轮次
 单卡最高显存 **31,201 MiB**。
 这些成绩对应完整长输入的英文代码任务。
-[8K 原始记录](docs/winintel/official-code-context-8k-300w.json) ·
-[8K GPU 遥测](docs/winintel/official-code-context-8k-300w-gpu.json) ·
-[256K 原始记录](docs/winintel/official-code-context-256k-300w.json) ·
-[256K GPU 遥测](docs/winintel/official-code-context-256k-300w-gpu.json) ·
-[完整长上下文报告](docs/winintel/official-context-summary.json)
+[8K / 256K 长上下文与显存结果表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
 ### 追加长输入配置实测
 
 MTP5、FP8 KV、262,144 上下文、最大四路、预填充批量 12,288 token，
-CUTLASS 与 CUDA Graph，每卡 300W：
+CUTLASS 与 CUDA Graph：
 
 | 任务 | 每路实际输入 token | 并发 | 最大首字等待 | 客户端总解码吞吐 | 验证 |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -167,10 +156,7 @@ CUTLASS 与 CUDA Graph，每卡 300W：
 原 MTP11 / 6,144 配置为 **163.64 秒**，本轮为 **171.77 秒**；
 单路长输入优先保留原配置。四路完整 256K 尚未实测，预估首字时间超过 180 秒。
 
-[四路 8K 原始记录](docs/winintel/official-opt-long-mtp5-batch12288-8k-c4.json) ·
-[32K 引擎指标](docs/winintel/official-opt-long-mtp5-batch12288-32k-engine-metrics.json) ·
-[256K 原始记录](docs/winintel/official-opt-long-mtp5-batch12288-256k.json) ·
-[256K 引擎指标](docs/winintel/official-opt-long-mtp5-batch12288-256k-engine-metrics.json)
+[四路 8K、32K / 256K 与引擎指标表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
 补充四路独立 8K 原文检索会话，MTP11、预填充批量 6,144、FP8 KV、
 服务上下文 262,144 token：
@@ -184,8 +170,7 @@ PREFILL 阶段耗时之和为 15.91 秒；阶段时间可能重叠，因此每�
 不能当成 GPU 总吞吐，首字等待还包含排队。每路仅输出 73 token，
 不能直接与长代码输出成绩比较。
 
-[四路检索原始记录](docs/winintel/official-opt-long-mtp11-batch6144-8k-c4-retrieval.json) ·
-[四路预填充指标](docs/winintel/official-opt-long-mtp11-batch6144-8k-c4-retrieval-engine-metrics.json)
+[四路检索与预填充指标表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
 ### 历史检查点：八路代码生成 373.4 token/s
 
@@ -229,7 +214,7 @@ DAG 拓扑排序三类英文代码任务。贪心解码，正常 EOS，输出上
 | 三类任务同时运行 | 3 | **220.54 token/s 总吞吐** |
 
 12 份代码输出全部通过行为检查。
-[原始测试记录](docs/winintel/english-code-tp4-mtp5.json)。
+[测试结果表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)。
 
 ### 验证记录
 
@@ -242,12 +227,10 @@ DAG 拓扑排序三类英文代码任务。贪心解码，正常 EOS，输出上
 | 8K 输入原文检索 | 三段合同原文逐字通过，首字等待 2.353 秒 |
 
 性能数据对应随包记录的实际测试检查点；权重文件标识见
-[模型清单](docs/winintel/tp8-nvfp4-model-manifest.json)。
+[模型校验表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)。
 下表的官方模型链接提供模型选择和配置参考。
 
-原始记录：[八路输出与时间](docs/winintel/english-code-fp8kv-8seq-256k.json) ·
-[GPU 遥测](docs/winintel/english-code-fp8kv-8seq-256k-gpu.csv) ·
-[单路与三路结果](docs/winintel/english-code-tp8-mtp7.json) ·
+[八路、单路与三路测试结果表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告) ·
 [算子测试](docs/winintel/fp8-kv-prefill-tests-v100.txt)
 
 ## 适用模型
@@ -286,6 +269,12 @@ HF_ENDPOINT=https://hf-mirror.com .venv/bin/hf download \
 模型下载由用户单独发起，耗时取决于网络带宽和模型大小。
 
 ## 一键安装
+
+[从 Ubuntu 安装、驱动和 CUDA 配置到开机自启的完整教程](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0)。
+
+**显存要求：**本版本将 27B 权重展开为 FP16，仅权重约需 50 GiB。
+单张 V100 32GB 或两张 V100 16GB 无法部署此 27B 模型；建议选择 7B/8B。
+四张、八张 V100 32GB 已实测；两张 V100 32GB 配置尚待硬件验证。
 
 **推荐环境：**Linux x86_64、V100 32GB × 8、CUDA Toolkit 12.8、
 NVIDIA 驱动、C/C++ 编译工具、Git、curl。安装包内置官方 vLLM 0.17.0
@@ -401,14 +390,12 @@ bash start.sh /path/to/model
 
 ```bash
 sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -ac 877,1530
-sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -pl 300
 SM70_SPECULATIVE_TOKENS=11 SM70_MAX_MODEL_LEN=16384 \
 SM70_MAX_NUM_SEQS=16 SM70_MEMORY_UTILIZATION=0.80 \
 SM70_KV_CACHE_DTYPE=auto WININTEL_SM70_TORCH_PREFILL=1 \
 bash start.sh /path/to/model
 ```
 
-以上命令使用硬件最高 300W 功耗上限。
 使用下方英文 LRU 测速命令，分别设置 `C=1`、`2`、`4`、`8`、`16`。
 
 ### 长上下文运行
@@ -416,7 +403,6 @@ bash start.sh /path/to/model
 TP8 配置 256K 上下文，先以单路请求验证：
 
 ```bash
-sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -pl 300
 WININTEL_PROFILE=long SM70_MAX_NUM_SEQS=1 SM70_SPECULATIVE_TOKENS=11 \
 bash start.sh /path/to/model
 ```
@@ -430,7 +416,7 @@ SM70_MAX_NUM_SEQS=1 bash start.sh /path/to/model
 ```
 
 官方检查点，TP8、FP8 KV、MTP11、CUTLASS 预填充、CUDA Graph，
-单请求，每卡硬件最高 **300W** 功耗上限：
+单请求：
 
 | 实际输入 token | 首字等待 | 输入吞吐（输入 / 首字等待） | 生成速度 | 原文检索 |
 | ---: | ---: | ---: | ---: | --- |
@@ -441,14 +427,9 @@ SM70_MAX_NUM_SEQS=1 bash start.sh /path/to/model
 每项实测一轮，正文 5%、50%、95% 位置放入三段合同条款，
 背景为重复的合同干扰资料；正常 EOS，实际生成 73 token，输出上限 128 token。
 输入吞吐包含 HTTP 传输、预填充和首个生成块的时间。
-256K 轮次单卡最高显存 **32,431 MiB**，
-采样瞬时功耗最高 **314.01W**，设置上限仍为 300W。
+256K 轮次单卡最高显存 **32,431 MiB**。
 
-[8K 原始记录](docs/winintel/official-context-8k-cutlass-300w.json) ·
-[32K 原始记录](docs/winintel/official-context-32k-cutlass-300w.json) ·
-[256K 原始记录](docs/winintel/official-context-256k-300w.json) ·
-[256K GPU 遥测](docs/winintel/official-context-256k-300w-gpu.json) ·
-[256K 配置](docs/winintel/official-context-256k-300w-configuration.json)
+[8K / 32K / 256K 检索、显存与配置表](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
 `long` 配置默认启用已有的 PyTorch CUTLASS 预填充路径，
 配合 `WININTEL_SM70` 注意力后端与主模型、草稿 CUDA Graph。
@@ -495,7 +476,6 @@ C=1
 各请求通过屏障同时发起，保存输入输出、首字等待、解码速度、
 总吞吐和代码行为检查结果；监控脚本记录显存和功耗，
 每个请求的首字等待上限为 180 秒。模型下载与整轮测试时长不受此上限限制。
-本轮测试采用每卡硬件最高 300W 功耗上限。
 运行前按已有吞吐估算首字等待；英文 LRU 代码任务用于复现最快任务的成绩。
 报告同时保存通过代码检查的最佳轮次与均值。
 
