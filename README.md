@@ -519,3 +519,10 @@ This is an adaptation of vLLM and existing open-source components.
 AI assistance was used for development and documentation.
 Licenses: Apache-2.0, with MIT components.
 See [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) for attribution.
+
+## Beginner tutorial
+
+Start with the separate [V100 beginner deployment guide](docs/winintel/v100-beginner-guide.en.md)
+or the [complete Chinese step-by-step tutorial](docs/winintel/v100-beginner-guide.zh-CN.md).
+They cover system preparation, drivers, CUDA, model downloads, GPU configurations,
+API checks, startup at boot and client connection settings.
