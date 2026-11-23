@@ -642,3 +642,9 @@ C=1
 本项目基于 vLLM 及开源组件，使用 AI 辅助开发与整理。
 许可证：Apache-2.0；部分组件 MIT。详见 [NOTICE](NOTICE) 与
 [THIRD_PARTY.md](THIRD_PARTY.md)。
+
+## 小白教程
+
+第一次部署，请看单独的[《V100 从零安装与部署教程》](docs/winintel/v100-beginner-guide.zh-CN.md)。
+按步骤完成 Ubuntu 准备、显卡驱动与 CUDA 安装、模型下载、单卡/多卡启动、
+API 测试和开机自启；WorkBuddy、DeepSeek Harness 的连接参数也有说明。
