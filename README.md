@@ -1,262 +1,521 @@
+<div align="center">
+
 # winintel-vllm
 
-Run local AI on NVIDIA V100 servers for conversations, coding and text processing.
+### 🚀 winintel AI · Large-model inference on NVIDIA V100
 
-Author: 数萌AI服务器 (winintel) · [winintel AI](https://winintel.com)
+**💎 More value from proven hardware.**
 
-[Download v0.1.0](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0) ·
-[Complete installation guide](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0) ·
-[Performance tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告) ·
-[中文](README.zh-CN.md)
+**⚡ 880.9 tokens/s at 16 requests · 🔥 592.9 tokens/s at 8 requests · 🧠 256K context tested**
 
-[Bilibili](https://space.bilibili.com/429959998) ·
-[YouTube · winintel AI](https://www.youtube.com/@winintelcom)
+[🌐 Website](https://winintel.com) · [📊 Performance](#measured-performance) ·
+[🛠️ Installation](#installation) · [🇨🇳 中文](README.zh-CN.md)
 
-## What does it do?
+[🎬 Bilibili](https://space.bilibili.com/429959998) ·
+[▶️ YouTube · winintel AI](https://www.youtube.com/@winintelcom)
 
-winintel-vllm adapts vLLM 0.17.0 and existing open-source components for NVIDIA Tesla V100.
-Install it on your server, download a model and start the service.
-AI clients on your computer can then send requests to that server.
-The model generates answers using your server's GPUs.
+[⭐ Star this project](https://github.com/alexhmyang/winintel-vllm) ·
+[🔔 Watch releases](https://github.com/alexhmyang/winintel-vllm/subscription) ·
+[📦 Download v0.1.0](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0)
 
-Release v0.1.0 focuses on Qwen3.8-27B text inference:
+**v0.1.0 · Qwen3.8-27B · Volta / SM70**
 
-- Conversations, code generation and text processing.
-- Multiple simultaneous requests.
-- An OpenAI-compatible chat API for clients such as WorkBuddy and DeepSeek Harness.
-- Faster answer generation using MTP prediction and CUDA Graph to reduce repeated scheduling work.
-- Single-request inputs approaching 256K tested on eight GPUs.
+</div>
 
-This release provides text input and output. Images, video and complete client automation workflows have not been validated.
+🚀 **Turn your NVIDIA V100 servers into practical AI infrastructure.**
+winintel-vllm by **winintel AI** brings Qwen3.8-27B coding assistants and
+private text services to proven hardware, with **up to 880.95 tokens/s
+aggregate decode** in measured 16-request coding tests and **full 256K
+single-request inputs tested**. Built on vLLM 0.17.0 and existing open-source
+components, it combines faster concurrent serving, long-context processing,
+and straightforward deployment.
 
-## Which GPUs do I need?
+- ⚡ **More concurrent work:** best measured coding throughput of **592.92 tokens/s at 8 requests** and **880.95 tokens/s at 16**, using 8 × V100 32GB.
+- 🧠 **Room for long documents:** a **262,144-token context limit**, with full single-request long-input code generation and exact clause retrieval tested.
+- 🏎️ **Faster answers:** MTP predicts upcoming tokens for the main model to verify; CUDA Graph reduces repeated GPU scheduling work, with the `WININTEL_SM70` attention backend adapted for V100.
+- 💾 **Flexible model loading:** NVFP4/FP8 checkpoint compatibility with FP16 execution on V100, plus FP8 KV storage.
+- 🔌 **Easy application integration:** an OpenAI-compatible API with live SSE streaming for coding assistants and private text applications.
+- 🛠️ **One-command installation:** bundled base source, uv environment setup, SM70 extension builds, and documented deployment profiles.
+- ✅ **Results you can check:** reproducible benchmark scripts, raw timing records, and **150/150 validated programs** in the MTP configuration comparison.
+- 🤝 **Built for collaboration:** transparent component attribution and an open invitation to improve V100 inference together.
 
-The NVFP4 download is compressed, but this release expands model weights to FP16 at load time.
-27B weights alone need about 50 GiB, with additional memory for caches and acceleration.
+## Capabilities
 
-| GPU configuration | This release's 27B model | Recommendation |
-| --- | --- | --- |
-| 1 × V100 32GB | Insufficient memory | Use the separate 7B/8B path in the beginner guide |
-| 2 × V100 16GB | Insufficient memory | Total memory is still only 32GB |
-| 2 × V100 32GB | Configuration provided; hardware validation pending | Validate startup and answers before increasing input length |
-| 4 × V100 32GB | Tested | Recommended starting configuration for this 27B model |
-| 8 × V100 32GB | Tested | Suitable for concurrent requests and longer inputs |
+| Feature | Support |
+| --- | --- |
+| Tensor parallelism | TP2 / TP4 / TP8 configurations; TP4 and TP8 measured |
+| Attention backend | `WININTEL_SM70` |
+| Acceleration | MTP3/5/7/9/11; target and draft CUDA Graph |
+| Checkpoints | ModelOpt mixed FP8/NVFP4 and compressed-tensors NVFP4 |
+| V100 execution | Quantized weights expanded to FP16 at load time; FP16 compute |
+| KV cache | FP16 or FP8 E4M3 |
+| Context limit | 262,144 tokens per request |
+| API | OpenAI-compatible HTTP API with SSE streaming |
 
-Use an Ubuntu/Linux server, a compatible NVIDIA driver and CUDA Toolkit 12.8.
-Windows computers can run clients and connect to the server.
-The installation commands below run in the Ubuntu server terminal.
+V100 does not execute these checkpoints with native FP4 or FP8 tensor cores.
+FP8 here describes KV storage; the model weights and activations run in FP16.
+DFlash2 adapters are for development only: draft numerical validation does
+not pass on the tested V100 configuration. There is no validated DFlash2
+speedup. The measured performance below uses MTP.
 
-## Install and start
+## Measured performance
 
-If Ubuntu, drivers or CUDA are not ready, follow the
-[complete beginner guide](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0).
-It covers setup, GPU counts, startup at boot and troubleshooting.
+Concurrency is the number of simultaneous requests. Aggregate throughput is their combined speed, not the speed each user receives.
+Tokens are text processing units, not a fixed number of characters.
+TTFT is the wait for the first answer; prefill processes your input, and decode generates the answer.
 
-On a prepared server:
+### Official checkpoint: English code generation
+
+**Hardware:** 8 × V100-SXM2 32GB, TP8.  
+**Checkpoint:** [`nvidia/Qwen3.8-27B-NVFP4`](https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4),
+revision `482ca0f3832238542f8f5295dde86b5f22711d80`;
+every weight shard checked against its official SHA256.  
+**Configuration:** FP16 compute and KV, MTP11, target and draft CUDA Graph,
+16,384-token context, maximum 16 sequences.
+
+| Concurrent requests | Rounds | Best aggregate decode | Mean aggregate decode | Maximum TTFT | Code validation |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 3 | **93.26 tokens/s** | 93.06 tokens/s | 188 ms | 3/3 |
+| 2 | 3 | **191.64 tokens/s** | 191.38 tokens/s | 460 ms | 6/6 |
+| 4 | 3 | **332.96 tokens/s** | 332.76 tokens/s | 410 ms | 12/12 |
+| 8 | 3 | **518.46 tokens/s** | 518.19 tokens/s | 455 ms | 24/24 |
+| 16 | 2 | **802.81 tokens/s** | 802.10 tokens/s | 599 ms | 32/32 |
+
+The table combines the three-round 1–8-request measurement with the
+two-round 16-request measurement. Configuration comparisons follow below.
+
+Each request generates an English Python LRU implementation and at least
+eight executable unit tests. All 77 outputs passed syntax, independent LRU
+behavior checks, and their generated tests. Requests start at a barrier and
+use independent streaming HTTP sessions. Coding runs use a four-token
+warmup before the measured requests. Inputs contain 100 tokens;
+outputs contain 1,677–1,746 tokens. Greedy decoding is used, thinking is disabled,
+EOS is respected, and the output budget is 2,048 tokens.
+
+Decode throughput excludes the first streamed block. These are short-prompt
+results and do not describe decoding after a 256K input.
+The separately measured initial best single-request result was **93.56 tokens/s**.
+
+[Round results, GPU memory and checkpoint verification tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
+
+### Configuration comparison
+
+MTP11, FP16 KV, 16K service context, CUTLASS prefill enabled,
+two rounds per concurrency:
+
+| Concurrent requests | Best aggregate decode | Mean aggregate decode | Maximum TTFT |
+| ---: | ---: | ---: | ---: |
+| 1 | **93.83 tokens/s** | 93.80 tokens/s | 194 ms |
+| 8 | **517.92 tokens/s** | 516.89 tokens/s | 500 ms |
+| 16 | **802.81 tokens/s** | 802.10 tokens/s | 599 ms |
+
+All 50 generated programs passed validation.
+Peak per-GPU memory use was **29,723 MiB**.
+
+Changing only the MTP draft length produced these two-round results:
+
+| Concurrent requests | MTP11 mean decode | MTP9 mean decode | MTP5 mean decode | MTP5 vs MTP11 |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 93.80 tokens/s | **94.03 tokens/s** | 86.78 tokens/s | −7.5% |
+| 8 | 516.89 tokens/s | 547.06 tokens/s | **592.26 tokens/s** | +14.6% |
+| 16 | 802.10 tokens/s | 831.58 tokens/s | **879.43 tokens/s** | +9.6% |
+
+All **150 outputs** across the three configurations passed code validation.
+MTP5 best rounds reached **592.92 tokens/s**
+at eight requests and **880.95 tokens/s** at sixteen requests.
+Use MTP9 for this single-request task and MTP5 for higher concurrency.
+These comparisons use matching runs of the same code task.
+
+[MTP11 / MTP9 / MTP5 comparison and round tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
+
+### Full long inputs
+
+Official checkpoint, TP8, FP8 KV, MTP11, PyTorch CUTLASS prefill,
+target and draft CUDA Graph, one request.
+
+| Workload | Actual input tokens | TTFT | Input / TTFT | Client decode | Validation |
+| --- | ---: | ---: | ---: | ---: | --- |
+| English code | 8,192 | **2.21 s** | 3,704.29 tokens/s | **82.37 tokens/s** | Passed |
+| English code | 260,096 | **160.66 s** | 1,618.89 tokens/s | **10.83 tokens/s** | Passed |
+| Exact clause retrieval | 8,192 | 2.48 s | 3,302.89 tokens/s | 98.80 tokens/s | 3/3 |
+| Exact clause retrieval | 32,768 | 9.68 s | 3,385.23 tokens/s | 91.76 tokens/s | 3/3 |
+| Exact clause retrieval | 262,016 | 163.64 s | 1,601.17 tokens/s | 18.73 tokens/s | 3/3 |
+
+Each entry is one measured round. Code inputs use repeated archived English
+reference code followed by the implementation task. Both generated programs
+passed behavior checks and at least eight generated unit tests.
+The 256K code request produced 1,668 tokens; the retrieval request produced 73.
+Retrieval validates exact Chinese contract clauses at 5%, 50%, and 95%
+of the input. These workloads measure different output behavior.
+
+Input / TTFT includes HTTP transfer, prefill, and first-block generation;
+it is not a pure GPU prefill measurement. Separate engine metrics, where
+provided, measure vLLM's scheduler PREFILL phase.
+The first-token deadline is **180 seconds**.
+Four simultaneous full 256K inputs have not been validated.
+
+### Additional long-input measurements
+
+MTP5, FP8 KV, 262,144-token service context, maximum four sequences,
+12,288 batched tokens, CUTLASS prefill and CUDA Graph:
+
+| Workload | Input tokens per request | Concurrency | Maximum TTFT | Aggregate client decode | Validation |
+| --- | ---: | ---: | ---: | ---: | --- |
+| English code | 8,192 | 4 | 8.56 s | **191.72 tokens/s** | 4/4 programs |
+| Exact clause retrieval | 32,768 | 1 | 9.48 s | 74.51 tokens/s | 3/3 clauses |
+| Exact clause retrieval | 262,016 | 1 | 171.77 s | 18.95 tokens/s | 3/3 clauses |
+
+The retrieval measurements have no warmup and expose a separate engine
+PREFILL measurement:
+
+| Input tokens | Engine PREFILL time | Input / engine PREFILL time |
+| ---: | ---: | ---: |
+| 32,768 | **9.37 s** | **3,498.94 tokens/s** |
+| 262,016 | **171.25 s** | **1,530.03 tokens/s** |
+
+These are vLLM scheduler phase times, rather than isolated CUDA kernel times.
+Each long-input entry is one measured round.
+The MTP5/12,288 configuration did not improve full-input TTFT over the
+MTP11/6,144 baseline: 171.77 versus 163.64 seconds. Retain the latter
+configuration when prioritizing measured single-request long-input latency.
+Four full 256K inputs remain untested; their estimated prefill time exceeds
+the 180-second first-token budget.
+
+[4-request 8K, 32K / 256K and engine metrics tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
+
+Four independent 8K retrieval sessions were also measured with MTP11,
+6,144 batched tokens, FP8 KV and the 262,144-token service context:
+
+| Input tokens per request | Concurrency | Mean engine PREFILL | Input / mean PREFILL per request | Maximum TTFT | Aggregate client decode |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 8,192 | 4 | **3.98 s** | **2,059.69 tokens/s** | **9.24 s** | **39.48 tokens/s** |
+
+All four outputs reproduced all three required clauses exactly. No warmup
+was used. Engine PREFILL counters cover four completed requests, with
+15.91 seconds of summed phase time. The per-request rate is not aggregate
+GPU throughput: phase durations can overlap, and TTFT includes queueing.
+Retrieval produces only 73 output tokens per request and should not be
+compared directly with the longer code-generation outputs.
+
+[4-request retrieval and engine PREFILL tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
+
+[Long-context code and GPU memory tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
+
+Historical TP4 and other checkpoint results remain in the
+[Chinese documentation](README.zh-CN.md). They are not directly comparable
+to the official-checkpoint table above.
+
+## Models
+
+| Resource | Link |
+| --- | --- |
+| Base model | [Qwen/Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) |
+| NVIDIA quantized checkpoint | [nvidia/Qwen3.8-27B-NVFP4](https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4) |
+| Matching DFlash2 draft | [incoai/Qwen3.8-27B-DFlash2](https://huggingface.co/incoai/Qwen3.8-27B-DFlash2) |
+| Base model mirror | [HF Mirror](https://hf-mirror.com/Qwen/Qwen3.8-27B) |
+| NVIDIA checkpoint mirror | [HF Mirror](https://hf-mirror.com/nvidia/Qwen3.8-27B-NVFP4) |
+
+Use a complete local checkpoint with config, tokenizer, and all weight shards.
+The official Qwen3.8 checkpoint declares the internal `qwen3_5` architecture;
+the installer checks this architecture and the 5,120-dimensional model.
+This release supports text inference.
+
+## Installation
+
+[Complete Ubuntu, driver, CUDA, deployment and startup guide](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0).
+
+**Memory requirements:** this release expands 27B weights to FP16, requiring
+about 50 GiB for weights alone. One V100 32GB or two V100 16GB cannot run
+this 27B model; choose a 7B/8B model for that memory capacity.
+Four and eight V100 32GB configurations have been tested.
+Two V100 32GB remain pending hardware validation.
+
+**Requirements:** Linux x86_64, NVIDIA V100, NVIDIA driver,
+CUDA Toolkit 12.8, C/C++ build tools, Git, and curl.
+The recommended tested configuration is 8 × V100 32GB.
+
+Extract `winintel-vllm-0.1.0-qwen3.8-install.tar.gz`, then run:
 
 ```bash
-mkdir -p "$HOME/winintel"
-cd "$HOME/winintel"
-curl -fL --retry 3 \
-  https://github.com/alexhmyang/winintel-vllm/releases/download/v0.1.0/winintel-vllm-0.1.0-qwen3.8-install.tar.gz \
-  -o winintel-vllm-0.1.0-qwen3.8-install.tar.gz
-echo '99bbbb519e1068efe034febde7a9a9af29f4fe683ee882c22598f4b480ec9d5e  winintel-vllm-0.1.0-qwen3.8-install.tar.gz' \
-  | sha256sum -c -
-tar -xzf winintel-vllm-0.1.0-qwen3.8-install.tar.gz
-cd winintel-vllm-0.1.0-qwen3.8
-MAX_JOBS=4 bash install.sh
+bash install.sh /path/to/Qwen3.8-27B-NVFP4
 ```
 
-The checksum should show `OK`. The installer creates a Python environment, installs dependencies and builds V100 extensions.
-It defaults to domestic package mirrors. Download the full `install` archive; the smaller `source` archive is not a replacement.
+The installer includes official vLLM 0.17.0 base source, creates a Python 3.12
+environment with uv, installs dependencies and pre-commit hooks, builds
+SM70 extensions, and starts the service. Model weights are downloaded
+separately. The smaller source archive requires the matching base-source
+archive under `vendor/` for installation.
 
-Download the model using the domestic mirror:
+Default package mirrors are Tsinghua PyPI and Nanjing University's
+PyTorch CUDA 12.8 mirror. To use official package sources:
+
+```bash
+UV_INDEX_URL=https://pypi.org/simple \
+WININTEL_TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128 \
+bash install.sh /path/to/model
+```
+
+To install without starting a model:
+
+```bash
+bash install.sh
+```
+
+Download the verified checkpoint from the installed `runtime` directory:
+
+```bash
+HF_ENDPOINT=https://hf-mirror.com .venv/bin/hf download \
+  nvidia/Qwen3.8-27B-NVFP4 \
+  --revision 482ca0f3832238542f8f5295dde86b5f22711d80 \
+  --local-dir /data/models/Qwen3.8-27B-NVFP4
+```
+
+Use `HF_ENDPOINT=https://huggingface.co` for the original host.
+Existing uv installations are reused. Bootstrap and Python mirrors can be
+changed with `WININTEL_UV_INSTALL_URL` and `UV_PYTHON_INSTALL_MIRROR`.
+
+## Serving
+
+| Profile | Maximum context | Maximum sequences | KV cache | GPU memory budget |
+| --- | ---: | ---: | --- | ---: |
+| `standard` | 8,192 | 8 | FP16 | 40% |
+| `throughput` | 8,192 | 8 | FP8 E4M3 | 80% |
+| `long` | 262,144 | 8 | FP8 E4M3 | 80% |
+
+```bash
+WININTEL_PROFILE=throughput bash start.sh /path/to/model
+```
+
+Reproduce the official short-prompt MTP11 configuration:
+
+```bash
+sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -ac 877,1530
+SM70_SPECULATIVE_TOKENS=11 SM70_MAX_MODEL_LEN=16384 \
+SM70_MAX_NUM_SEQS=16 SM70_MEMORY_UTILIZATION=0.80 \
+SM70_KV_CACHE_DTYPE=auto WININTEL_SM70_TORCH_PREFILL=1 \
+bash start.sh /path/to/model
+```
+
+For the measured high-concurrency improvement, use the same command with
+`SM70_SPECULATIVE_TOKENS=5`. Use `9` for the fastest measured single-request
+configuration of this task.
+
+DFlash2 is available only for development and does not pass draft numerical
+validation on this V100 configuration. Use MTP for deployment.
+Experimental DFlash2 uses the matching checkpoint and seven speculative tokens.
+The launcher selects synchronous scheduling and eager draft execution for
+this adapter; the target model retains CUDA Graph.
 
 ```bash
 HF_ENDPOINT=https://hf-mirror.com runtime/.venv/bin/hf download \
-  nvidia/Qwen3.8-27B-NVFP4 \
-  --revision 482ca0f3832238542f8f5295dde86b5f22711d80 \
-  --local-dir "$HOME/models/Qwen3.8-27B-NVFP4"
+  incoai/Qwen3.8-27B-DFlash2 \
+  --revision 015e795645c74b1a0eeef3b570031fb62e769bc5 \
+  --local-dir /data/models/Qwen3.8-27B-DFlash2
+WININTEL_ENABLE_EXPERIMENTAL_DFLASH2=1 SM70_SPECULATIVE_METHOD=dflash2 \
+SM70_DRAFT_MODEL=/data/models/Qwen3.8-27B-DFlash2 \
+SM70_SPECULATIVE_TOKENS=7 SM70_MAX_MODEL_LEN=16384 \
+SM70_MAX_NUM_SEQS=16 SM70_MEMORY_UTILIZATION=0.80 \
+SM70_KV_CACHE_DTYPE=auto WININTEL_SM70_TORCH_PREFILL=1 \
+bash start.sh /path/to/Qwen3.8-27B-NVFP4
 ```
 
-Start with four V100 32GB:
+For a single full long-context request:
+
+```bash
+WININTEL_PROFILE=long SM70_MAX_NUM_SEQS=1 \
+SM70_SPECULATIVE_TOKENS=11 bash start.sh /path/to/model
+```
+
+Reproduce the four-request 8K retrieval measurement with
+`SM70_MAX_NUM_SEQS=4 SM70_MAX_BATCHED_TOKENS=6144` in the long profile.
+Run the retrieval benchmark with `--concurrency 4 --rounds 1
+--context-lengths 8192 --max-tokens 128`. Engine counters are available at
+`/metrics`; subtract counters recorded before and after all four requests
+finish to obtain the mean scheduler PREFILL phase time.
+
+The maximum sequence count does not certify that all requests can use
+the full context simultaneously. Actual capacity depends on the allocated
+KV cache. Estimate TTFT from measured input throughput before increasing
+input length or concurrency.
+
+TP4:
 
 ```bash
 SM70_TENSOR_PARALLEL_SIZE=4 CUDA_VISIBLE_DEVICES=0,1,2,3 \
-WININTEL_PROFILE=throughput \
-bash start.sh "$HOME/models/Qwen3.8-27B-NVFP4"
+WININTEL_PROFILE=throughput bash start.sh /path/to/model
 ```
 
-Or eight V100 32GB:
+TP2 configuration, pending hardware validation:
 
 ```bash
-WININTEL_PROFILE=throughput \
-bash start.sh "$HOME/models/Qwen3.8-27B-NVFP4"
+SM70_TENSOR_PARALLEL_SIZE=2 CUDA_VISIBLE_DEVICES=0,1 \
+SM70_MAX_MODEL_LEN=4096 SM70_KV_CACHE_DTYPE=fp8_e4m3 \
+bash start.sh /path/to/model
 ```
 
-Wait for model loading and service startup. These commands use an 8,192-token context.
-Keep the terminal open, or configure startup at boot using the complete guide.
+TP2 defaults to one sequence, a 92% memory budget, and 512-token prefill
+chunks. TP4 defaults to an 80% memory budget.
+Configuration overrides include `SM70_PORT`, `SM70_MAX_MODEL_LEN`,
+`SM70_MAX_NUM_SEQS`, `SM70_MAX_BATCHED_TOKENS`, `SM70_KV_CACHE_DTYPE`,
+`SM70_MEMORY_UTILIZATION`, `SM70_TENSOR_PARALLEL_SIZE`,
+`SM70_SPECULATIVE_TOKENS`, `SM70_SPECULATIVE_METHOD`, `SM70_DRAFT_MODEL`,
+and `SM70_SERVED_MODEL_NAME`.
 
-## Connection details
+## API
 
-Replace `192.168.1.100` with your server's reachable IP address.
-Run `hostname -I` on the server if you need to find it.
-
-| Setting | Value |
-| --- | --- |
-| Base URL | `http://192.168.1.100:8037/v1` |
-| Full chat endpoint | `http://192.168.1.100:8037/v1/chat/completions` |
-| Eight-GPU model ID | `winintel-qwen27-nvfp4-tp8` |
-| Four-GPU model ID | `winintel-qwen27-nvfp4-tp4` |
-| API key | Default startup does not enable authentication; use `winintel-local` if the client requires a value |
-
-The placeholder is not a server password. If you configured an authentication gateway, use its real key.
-Check model IDs at `http://192.168.1.100:8037/v1/models`.
-When the client runs on another computer, `127.0.0.1` points to that computer, not your server.
-
-Test on the server before configuring a client:
+Default endpoint: `http://SERVER_IP:8037/v1`.
+The TP8 model name is `winintel-qwen27-nvfp4-tp8`;
+TP4 and TP2 names end with `tp4` and `tp2`.
 
 ```bash
 curl http://127.0.0.1:8037/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "winintel-qwen27-nvfp4-tp8",
-    "messages": [{"role": "user", "content": "Introduce yourself briefly."}],
-    "max_tokens": 256,
+    "messages": [{"role": "user", "content": "Write a Python LRU cache class."}],
+    "temperature": 0,
+    "max_tokens": 512,
     "stream": true
   }'
 ```
 
-Change the model ID for a four-GPU service.
+### WorkBuddy: connect the model API
 
-## WorkBuddy
+In WorkBuddy, open Settings → Models, add a Custom model, save it and select it in the conversation model selector.
+Replace `192.168.1.100` with your server's reachable IP.
 
-1. Install [WorkBuddy](https://www.codebuddy.cn/) and open Settings → Models.
-2. Add a custom model and select Custom.
-3. Fill in the following fields and save.
-4. Select the new model in the conversation model selector.
-5. Send a short message to check the connection.
-
-| Field | Value |
+| Setting | Eight-GPU example |
 | --- | --- |
 | Display name | `winintel Local AI` |
-| Model ID | `winintel-qwen27-nvfp4-tp8`, or `winintel-qwen27-nvfp4-tp4` for four GPUs |
+| Model ID | `winintel-qwen27-nvfp4-tp8`; use `winintel-qwen27-nvfp4-tp4` for four GPUs |
 | URL / endpoint | `http://192.168.1.100:8037/v1/chat/completions` |
-| API key | `winintel-local` for the default unauthenticated service, otherwise your actual key |
-| Custom protocol | Off; use the standard chat endpoint |
-| Images | Off |
-| Input budget / maximum output, if available | Start with `6000` input tokens and `2048` output tokens |
-| Tool calling, if available | Default server startup does not enable tool parsing; start with text conversations |
+| API key | `winintel-local` for default unauthenticated startup; otherwise the real gateway key |
+| Custom protocol | Off |
+| Input budget / maximum output, if available | `6000` / `2048` for the default 8K context |
+| Images / tool calling, if available | Off initially; text inference only, with tool parsing disabled in default startup |
 
-WorkBuddy's default mode validates and completes the standard chat path.
-If your version asks specifically for a Base URL, enter the address ending in `/v1`.
-If it asks for an endpoint URL, enter the full chat address above.
-The final request path should contain `/v1/chat/completions` once.
+If your version specifically asks for a Base URL, use `http://192.168.1.100:8037/v1`.
+The final request should contain `/v1/chat/completions` once.
+For file configuration, this example is one entry inside the existing `models` array in supported legacy `~/.codebuddy/models.json`; preserve your other entries.
 
-Generating text and code does not establish support for editing files or executing commands.
-Those workflows require server-side tool calling; a client checkbox cannot enable it on the server.
-Complete WorkBuddy task workflows have not been tested with this release.
+```json
+{
+  "id": "winintel-qwen27-nvfp4-tp8",
+  "name": "winintel Local AI",
+  "url": "http://192.168.1.100:8037/v1/chat/completions",
+  "apiKey": "winintel-local",
+  "maxInputTokens": 6000,
+  "maxOutputTokens": 2048,
+  "supportsToolCall": false,
+  "supportsImages": false
+}
+```
 
-[Official WorkBuddy model configuration](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model)
+The placeholder is not a server password.
+[Official WorkBuddy configuration](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Model).
 
-## DeepSeek Harness
+### DeepSeek Harness: connect the model API
 
-DeepSeek Harness can connect to providers other than DeepSeek.
-These settings connect it to Qwen on your server.
+Install and start Harness using the [official instructions](https://github.com/deepseek-ai/deepseek-harness).
+Open Settings → Models, add a provider and choose Custom Model API.
+These settings connect to Qwen on your server, rather than the DeepSeek cloud API.
 
-Install and start it using the [official instructions](https://github.com/deepseek-ai/deepseek-harness), then:
-
-1. Open Settings → Models.
-2. Add a provider and choose Custom Model API.
-3. Enter these settings and add at least one model.
-4. Save and select the model under the `winintel` provider.
-5. Test with a short conversation.
-
-| Field | Value |
+| Setting | Eight-GPU example |
 | --- | --- |
 | Provider ID | `winintel`, lowercase |
 | Display name | `winintel Local AI` |
-| Base URL | `http://192.168.1.100:8037/v1` |
+| Base URL | `http://192.168.1.100:8037/v1`, without `/chat/completions` |
 | API protocol | `OpenAI Chat Completions` |
-| API key | `winintel-local` for the default unauthenticated service, otherwise your actual key |
-| Model ID | `winintel-qwen27-nvfp4-tp8`, or `winintel-qwen27-nvfp4-tp4` |
-| Context window | `8192`, matching the startup commands |
-| Maximum output tokens | `2048` |
-| Input type | Text only |
+| API key | `winintel-local` for default unauthenticated startup; otherwise the real gateway key |
+| Model ID | `winintel-qwen27-nvfp4-tp8`; use `winintel-qwen27-nvfp4-tp4` for four GPUs |
+| Context window / maximum output | `8192` / `2048`, matching the default server context |
+| Input type | Text |
 | Reasoning levels | Do not declare extra levels for the initial connection |
 
-Do not append `/chat/completions` to this Base URL.
+Save and select the model under `winintel`, then test a short conversation.
+If discovery fails, enter the model ID manually.
 Do not select Responses, Anthropic or Gemini protocols.
-If model discovery fails, add the model ID manually.
 
-For errors involving the `developer` role or output length parameters, open the configuration file from Settings.
-Under the existing `llm-pi-ai` entry, add these fields inside `providers.winintel`:
+For manual configuration, open the configuration file from Settings.
+The default web profile uses `$DSH_HOME/profiles/web/cordis.patch.yml`.
+Merge this provider into any existing `llm-pi-ai` entry, preserving other configuration:
 
 ```yaml
-compat:
-  supportsDeveloperRole: false
-  maxTokensField: max_tokens
+- id: llm-pi-ai
+  config:
+    providers:
+      winintel:
+        apiKeyEnv: WININTEL_API_KEY
+        api: openai-completions
+        baseURL: http://192.168.1.100:8037/v1
+        compat:
+          supportsDeveloperRole: false
+          maxTokensField: max_tokens
+        models:
+          - id: winintel-qwen27-nvfp4-tp8
+            name: winintel Local AI
+            contextWindow: 8192
+            maxTokens: 2048
+            input: [text]
 ```
 
-This is a fragment inside the provider, not a replacement for your full configuration.
-The default web profile uses `$DSH_HOME/profiles/web/cordis.patch.yml`.
-Model changes normally take effect on the next request.
+For this file example, set `WININTEL_API_KEY` before starting Harness.
+Windows PowerShell: `$env:WININTEL_API_KEY = "winintel-local"`.
+Linux/macOS: `export WININTEL_API_KEY=winintel-local`.
+Use the real key if authentication is configured. The UI approach stores credentials directly and does not require this environment variable.
 
-Harness automation also requires tool calling. The default release launcher does not enable tool parsing.
-Complete Harness task workflows have not been tested; a working conversation does not validate file operations.
+Complete automation workflows in either client remain untested.
+File editing and command execution require server-side tool calling, which default startup does not enable.
+For connection errors, check IP, port and `/v1/models`; for 404, check the path; for missing models, check the TP4 / TP8 ID.
 
-[Official Harness provider configuration](https://deepseek-harness.github.io/deepseek-harness/guide/providers)
+[Official Harness configuration](https://deepseek-harness.github.io/deepseek-harness/guide/providers).
 
-## Performance
+## Reproduce benchmarks
 
-Eight V100 32GB GPUs, official Qwen3.8-27B-NVFP4 checkpoint, short English Python coding prompts:
+Run from the installed `runtime` directory. Configure the server for at least
+16 sequences, then test each concurrency level independently:
 
-| Simultaneous requests | MTP11 mean aggregate decode | MTP9 mean aggregate decode | MTP5 mean aggregate decode |
-| ---: | ---: | ---: | ---: |
-| 1 | 93.80 tokens/s | 94.03 tokens/s | 86.78 tokens/s |
-| 8 | 516.89 tokens/s | 547.06 tokens/s | 592.26 tokens/s |
-| 16 | 802.10 tokens/s | 831.58 tokens/s | 879.43 tokens/s |
+```bash
+C=8
+.venv/bin/python scripts/run_sm70_guarded.py \
+  --gpus 0,1,2,3,4,5,6,7 \
+  --report "code-c${C}-gpu.json" -- \
+  .venv/bin/python scripts/benchmark_sm70_http.py \
+  --base-url http://127.0.0.1:8037/v1 \
+  --model winintel-qwen27-nvfp4-tp8 --tokenizer /path/to/model \
+  --workload english-code --coding-tasks lru \
+  --concurrency "$C" --rounds 3 --first-token-timeout-seconds 180 \
+  --max-tokens 2048 --report "code-c${C}.json"
+```
 
-Each setting ran twice. All 150 generated programs passed validation.
-Best MTP5 rounds reached 592.92 tokens/s at eight requests and 880.95 tokens/s at sixteen.
-Aggregate speed is the sum across requests, not the speed each user receives.
-Tokens are text processing units, not a fixed number of characters.
+Repeat with `C=1`, `2`, `4`, `8`, and `16`. Reports preserve actual inputs,
+outputs, token counts, timing, validation, best rounds, and averages.
+The guard records GPU memory, clock, and power without imposing
+a power cap. The 180-second deadline applies to TTFT, not download time or
+the entire benchmark.
 
-Long inputs take additional time before the first answer:
-
-| Task | Actual input tokens | Time to first answer | Decode speed | Validation |
-| --- | ---: | ---: | ---: | --- |
-| English code | 8,192 | 2.21 s | 82.37 tokens/s | Passed |
-| English code | 260,096 | 160.66 s | 10.83 tokens/s | Passed |
-| Exact clause retrieval | 32,768 | 9.68 s | 91.76 tokens/s | 3/3 |
-| Exact clause retrieval | 262,016 | 163.64 s | 18.73 tokens/s | 3/3 |
-
-One request, one measured round per long-input entry. Concurrent full 256K inputs remain unvalidated.
-Start with 8K context and increase input length only after checking behavior and capacity.
-
-[Complete results, GPU memory and validation tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
-are displayed directly on the page; no CSV download or JSON report reading is required.
-
-## Troubleshooting
-
-| Problem | Check |
-| --- | --- |
-| Connection refused | Server startup, reachable IP and port; access `/v1/models` from the client computer |
-| Timeout | Network connectivity and firewall access to port `8037` |
-| 404 | Missing `/v1` or a duplicated `/chat/completions` path |
-| Model not found | Exact ID from `/v1/models`; TP4 and TP8 names differ |
-| 401 | Actual gateway key if authentication is configured |
-| Input too long | Clear conversation history or reduce input; client settings cannot expand server capacity |
-| Conversation works, automation fails | Server-side tool calling; default startup does not enable tool parsing |
-| Out of GPU memory | GPU count and memory, other GPU processes, context length and request count |
+For a full 8K English code input, add `--coding-context-tokens 8192`.
+For the 256K service configuration, use `--coding-context-tokens 260096`
+and reserve 2,048 tokens for output. For exact retrieval instead, use
+`--workload context-retrieval --context-lengths 262016 --max-tokens 128`.
+Keep concurrency at one until the relevant input-length configuration
+has been measured.
 
 ## Community and attribution
 
-[Star the project](https://github.com/alexhmyang/winintel-vllm) ·
-[Report an issue](https://github.com/alexhmyang/winintel-vllm/issues) ·
-[Watch releases](https://github.com/alexhmyang/winintel-vllm/subscription)
+We welcome reproducible improvements to V100 throughput, long-input prefill,
+and model compatibility.
 
-数萌AI服务器 (winintel) · https://winintel.com · service@winintel.com
+⭐ Star the repository to help more V100 owners find it.
+🔔 Select **Watch → Custom → Releases** to receive new-version notifications.
+🐛 [Report an issue](https://github.com/alexhmyang/winintel-vllm/issues) or
+submit a pull request with your hardware, configuration, and measured results.
+📺 Subscribe to our YouTube channel and follow Bilibili for demonstrations.
 
-This project adapts vLLM and existing open-source components, with AI assistance for development and documentation.
-Licenses: Apache-2.0, with MIT components. See [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md).
+**数萌AI服务器 (winintel) · winintel AI Servers**
+[winintel.com](https://winintel.com) · service@winintel.com
+
+This is an adaptation of vLLM and existing open-source components.
+AI assistance was used for development and documentation.
+Licenses: Apache-2.0, with MIT components.
+See [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) for attribution.
