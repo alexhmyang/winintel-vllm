@@ -30,7 +30,7 @@ single-request inputs tested**. Built on vLLM 0.17.0 and existing open-source
 components, it combines faster concurrent serving, long-context processing,
 and straightforward deployment.
 
-- ⚡ **More concurrent work:** best measured coding throughput of **592.92 tokens/s at 8 requests** and **880.95 tokens/s at 16**, using 8 × V100 32GB at 300W per GPU.
+- ⚡ **More concurrent work:** best measured coding throughput of **592.92 tokens/s at 8 requests** and **880.95 tokens/s at 16**, using 8 × V100 32GB.
 - 🧠 **Room for long documents:** a **262,144-token context limit**, with full single-request long-input code generation and exact clause retrieval tested.
 - 🏎️ **Acceleration for V100:** MTP speculative decoding, target and draft CUDA Graph, and the `WININTEL_SM70` attention backend.
 - 💾 **Flexible model loading:** NVFP4/FP8 checkpoint compatibility with FP16 execution on V100, plus FP8 KV storage.
@@ -77,7 +77,6 @@ every weight shard checked against its official SHA256.
 | 8 | 3 | **518.46 tokens/s** | 518.19 tokens/s | 455 ms | 24/24 |
 | 16 | 2 | **802.81 tokens/s** | 802.10 tokens/s | 599 ms | 32/32 |
 
-All results above used each GPU's maximum **300W** power limit.
 The table combines the three-round 1–8-request measurement with the
 two-round 16-request measurement. Configuration comparisons follow below.
 
@@ -93,15 +92,12 @@ Decode throughput excludes the first streamed block. These are short-prompt
 results and do not describe decoding after a 256K input.
 The separately measured initial best single-request result was **93.56 tokens/s**.
 
-[1–8 request records](docs/winintel/official-code-best.json) ·
-[16-request records](docs/winintel/official-opt-mtp11-300w.json) ·
-[GPU telemetry](docs/winintel/official-opt-mtp11-300w-gpu.json) ·
-[Checkpoint verification](docs/winintel/official-model-manifest.json)
+[Round results, GPU memory and checkpoint verification tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
-### Maximum-power configuration comparison
+### Configuration comparison
 
 MTP11, FP16 KV, 16K service context, CUTLASS prefill enabled,
-two rounds per concurrency, **300W per GPU**:
+two rounds per concurrency:
 
 | Concurrent requests | Best aggregate decode | Mean aggregate decode | Maximum TTFT |
 | ---: | ---: | ---: | ---: |
@@ -124,18 +120,14 @@ All **150 outputs** across the three configurations passed code validation.
 MTP5 best rounds reached **592.92 tokens/s**
 at eight requests and **880.95 tokens/s** at sixteen requests.
 Use MTP9 for this single-request task and MTP5 for higher concurrency.
-These comparisons use matching maximum-power runs of the same code task.
+These comparisons use matching runs of the same code task.
 
-[MTP11 record](docs/winintel/official-opt-mtp11-300w.json) ·
-[MTP9 record](docs/winintel/official-opt-mtp9-300w.json) ·
-[MTP5 record](docs/winintel/official-opt-mtp5-300w.json) ·
-[GPU telemetry](docs/winintel/official-opt-mtp11-300w-gpu.json) ·
-[Configuration comparisons](docs/winintel/official-opt-summary.json)
+[MTP11 / MTP9 / MTP5 comparison and round tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
-### Full long inputs at maximum power
+### Full long inputs
 
 Official checkpoint, TP8, FP8 KV, MTP11, PyTorch CUTLASS prefill,
-target and draft CUDA Graph, one request, **300W per GPU**.
+target and draft CUDA Graph, one request.
 
 | Workload | Actual input tokens | TTFT | Input / TTFT | Client decode | Validation |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -161,7 +153,7 @@ Four simultaneous full 256K inputs have not been validated.
 ### Additional long-input measurements
 
 MTP5, FP8 KV, 262,144-token service context, maximum four sequences,
-12,288 batched tokens, CUTLASS prefill and CUDA Graph, **300W per GPU**:
+12,288 batched tokens, CUTLASS prefill and CUDA Graph:
 
 | Workload | Input tokens per request | Concurrency | Maximum TTFT | Aggregate client decode | Validation |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -185,10 +177,7 @@ configuration when prioritizing measured single-request long-input latency.
 Four full 256K inputs remain untested; their estimated prefill time exceeds
 the 180-second first-token budget.
 
-[4-request 8K record](docs/winintel/official-opt-long-mtp5-batch12288-8k-c4.json) ·
-[32K engine counters](docs/winintel/official-opt-long-mtp5-batch12288-32k-engine-metrics.json) ·
-[256K record](docs/winintel/official-opt-long-mtp5-batch12288-256k.json) ·
-[256K engine counters](docs/winintel/official-opt-long-mtp5-batch12288-256k-engine-metrics.json)
+[4-request 8K, 32K / 256K and engine metrics tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
 Four independent 8K retrieval sessions were also measured with MTP11,
 6,144 batched tokens, FP8 KV and the 262,144-token service context:
@@ -204,13 +193,9 @@ GPU throughput: phase durations can overlap, and TTFT includes queueing.
 Retrieval produces only 73 output tokens per request and should not be
 compared directly with the longer code-generation outputs.
 
-[4-request retrieval record](docs/winintel/official-opt-long-mtp11-batch6144-8k-c4-retrieval.json) ·
-[Engine PREFILL counters](docs/winintel/official-opt-long-mtp11-batch6144-8k-c4-retrieval-engine-metrics.json)
+[4-request retrieval and engine PREFILL tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
-[Long-context report](docs/winintel/official-context-summary.json) ·
-[8K code record](docs/winintel/official-code-context-8k-300w.json) ·
-[256K code record](docs/winintel/official-code-context-256k-300w.json) ·
-[256K telemetry](docs/winintel/official-code-context-256k-300w-gpu.json)
+[Long-context code and GPU memory tables](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0#测试报告)
 
 Historical TP4 and other checkpoint results remain in the
 [Chinese documentation](README.zh-CN.md). They are not directly comparable
@@ -232,6 +217,14 @@ the installer checks this architecture and the 5,120-dimensional model.
 This release supports text inference.
 
 ## Installation
+
+[Complete Ubuntu, driver, CUDA, deployment and startup guide](https://github.com/alexhmyang/winintel-vllm/releases/tag/v0.1.0).
+
+**Memory requirements:** this release expands 27B weights to FP16, requiring
+about 50 GiB for weights alone. One V100 32GB or two V100 16GB cannot run
+this 27B model; choose a 7B/8B model for that memory capacity.
+Four and eight V100 32GB configurations have been tested.
+Two V100 32GB remain pending hardware validation.
 
 **Requirements:** Linux x86_64, NVIDIA V100, NVIDIA driver,
 CUDA Toolkit 12.8, C/C++ build tools, Git, and curl.
@@ -289,11 +282,10 @@ changed with `WININTEL_UV_INSTALL_URL` and `UV_PYTHON_INSTALL_MIRROR`.
 WININTEL_PROFILE=throughput bash start.sh /path/to/model
 ```
 
-Reproduce the official short-prompt MTP11 configuration at maximum power:
+Reproduce the official short-prompt MTP11 configuration:
 
 ```bash
 sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -ac 877,1530
-sudo nvidia-smi -i 0,1,2,3,4,5,6,7 -pl 300
 SM70_SPECULATIVE_TOKENS=11 SM70_MAX_MODEL_LEN=16384 \
 SM70_MAX_NUM_SEQS=16 SM70_MEMORY_UTILIZATION=0.80 \
 SM70_KV_CACHE_DTYPE=auto WININTEL_SM70_TORCH_PREFILL=1 \
